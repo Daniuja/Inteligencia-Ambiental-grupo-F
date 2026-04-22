@@ -12,10 +12,10 @@ NOTA: El EV3 con firmware Pybricks tiene acceso completo al SO Linux
       o como alternativa se ejecutan comandos mosquitto_pub/sub vía subprocess.
 """
 
-import ujson
-import usocket
-import ustruct
-import utime
+import ujson  # type: ignore
+import usocket  # type: ignore
+import ustruct  # type: ignore
+import utime  # type: ignore
 
 
 # =============================================================================
