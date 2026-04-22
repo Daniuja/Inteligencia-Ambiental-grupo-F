@@ -29,8 +29,8 @@ RIGHT_MOTOR_PORT = Port.C
 PALA_MOTOR_PORT = Port.A
 
 # Puertos de los sensores
-COLOR_SENSOR_PORT = Port.S3
-GYRO_SENSOR_PORT = Port.S2
+COLOR_SENSOR_PORT = Port.S4
+GYRO_SENSOR_PORT = Port.S1
 
 # Dimensiones del robot (en mm) — CALIBRAR CON EL ROBOT REAL
 WHEEL_DIAMETER = 55.5   # Diámetro de las ruedas en mm
