@@ -62,12 +62,12 @@ Editar los puertos en `robot/hardware.py` según la conexión real del robot:
 | Motor izquierdo | `Port.B` |
 | Motor derecho | `Port.C` |
 | Motor pala | `Port.A` |
-| Sensor color | `Port.S3` |
-| Sensor giroscópico | `Port.S2` |
+| Sensor color | `Port.S4` |
+| Sensor giroscópico | `Port.S1` |
 
 Parámetros a calibrar:
-- `WHEEL_DIAMETER`: Diámetro de rueda en mm (default: 55.5)
-- `AXLE_TRACK`: Distancia entre ejes en mm (default: 104)
+- `WHEEL_DIAMETER`: Diámetro de rueda en mm (default: 60)
+- `AXLE_TRACK`: Distancia entre ejes en mm (default: 110)
 - `PALA_DOWN_ANGLE` / `PALA_UP_ANGLE`: Ángulos de la pala
 
 ## 📡 Topics MQTT

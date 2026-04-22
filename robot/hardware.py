@@ -33,8 +33,8 @@ COLOR_SENSOR_PORT = Port.S4
 GYRO_SENSOR_PORT = Port.S1
 
 # Dimensiones del robot (en mm) — CALIBRAR CON EL ROBOT REAL
-WHEEL_DIAMETER = 55.5   # Diámetro de las ruedas en mm
-AXLE_TRACK = 104         # Distancia entre puntos de contacto de las ruedas en mm
+WHEEL_DIAMETER = 60   # Diámetro de las ruedas en mm
+AXLE_TRACK = 110         # Distancia entre puntos de contacto de las ruedas en mm
 
 # Velocidades por defecto
 DEFAULT_DRIVE_SPEED = 150       # mm/s
