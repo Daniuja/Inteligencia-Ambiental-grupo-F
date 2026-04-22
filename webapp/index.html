@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Aplicación cliente para el robot de reparto EV3 - Equipo F - Inteligencia Ambiental">
+    <title>🤖 Robot de Reparto — Equipo F</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header id="app-header">
+        <div class="header-left">
+            <div class="logo">
+                <span class="logo-icon">🤖</span>
+                <div>
+                    <h1>Robot de Reparto</h1>
+                    <span class="team-badge">Equipo F</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="connection-status" id="connection-status">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="status-text">Desconectado</span>
+            </div>
+            <div class="battery-indicator" id="battery-indicator">
+                <span class="battery-icon">🔋</span>
+                <span id="battery-level">--</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="app-main">
+        <!-- Left Panel: Map -->
+        <section class="panel map-panel" id="map-panel">
+            <div class="panel-header">
+                <h2>🗺️ Mapa de la Ciudad</h2>
+                <div class="map-info">
+                    <span id="map-dimensions" class="info-chip">7×5</span>
+                    <span id="map-status" class="info-chip loading">Sin mapa</span>
+                </div>
+            </div>
+            <div class="map-container" id="map-container">
+                <canvas id="city-map-canvas" width="700" height="500"></canvas>
+                <div class="map-legend">
+                    <div class="legend-item"><span class="legend-color" style="background: #ef4444;"></span> Edificio</div>
+                    <div class="legend-item"><span class="legend-color" style="background: #f8fafc;"></span> Calle</div>
+                    <div class="legend-item"><span class="legend-color" style="background: #22d3ee;"></span> Recogida/Entrega</div>
+                    <div class="legend-item"><span class="legend-color robot-dot"></span> Robot</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Panel: Controls & Info -->
+        <aside class="panel controls-panel" id="controls-panel">
+            <!-- Robot Status -->
+            <div class="card status-card" id="robot-status-card">
+                <div class="card-header">
+                    <h3>📡 Estado del Robot</h3>
+                </div>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-label">Estado</span>
+                        <span class="status-value" id="robot-state">Esperando</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Posición</span>
+                        <span class="status-value mono" id="robot-position">(-, -)</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Orientación</span>
+                        <span class="status-value mono" id="robot-heading">--°</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Velocidad</span>
+                        <span class="status-value mono" id="robot-speed">-- mm/s</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Odometry Panel -->
+            <div class="card odometry-card" id="odometry-card">
+                <div class="card-header">
+                    <h3>📏 Odometría</h3>
+                    <span class="refresh-rate" id="odometry-rate">-- Hz</span>
+                </div>
+                <div class="odometry-grid">
+                    <div class="odo-item">
+                        <span class="odo-label">Distancia</span>
+                        <span class="odo-value mono" id="odo-distance">0 mm</span>
+                    </div>
+                    <div class="odo-item">
+                        <span class="odo-label">Vel. lineal</span>
+                        <span class="odo-value mono" id="odo-speed">0 mm/s</span>
+                    </div>
+                    <div class="odo-item">
+                        <span class="odo-label">Ángulo</span>
+                        <span class="odo-value mono" id="odo-angle">0°</span>
+                    </div>
+                    <div class="odo-item">
+                        <span class="odo-label">Vel. angular</span>
+                        <span class="odo-value mono" id="odo-turn-rate">0°/s</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Form -->
+            <div class="card order-card" id="order-card">
+                <div class="card-header">
+                    <h3>📦 Nuevo Pedido</h3>
+                </div>
+                <form id="order-form">
+                    <div class="form-group">
+                        <label for="pickup-select">📍 Punto de Recogida</label>
+                        <select id="pickup-select" required>
+                            <option value="">Seleccionar punto...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="delivery-select">🏠 Punto de Entrega</label>
+                        <select id="delivery-select" required>
+                            <option value="">Seleccionar punto...</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary" id="submit-order">
+                        <span class="btn-icon">🚀</span>
+                        Lanzar Pedido
+                    </button>
+                </form>
+            </div>
+
+            <!-- Order Queue -->
+            <div class="card queue-card" id="queue-card">
+                <div class="card-header">
+                    <h3>📋 Cola de Pedidos</h3>
+                    <span class="order-count" id="order-count">0</span>
+                </div>
+                <div class="order-list" id="order-list">
+                    <div class="empty-queue" id="empty-queue">
+                        <span class="empty-icon">📭</span>
+                        <p>No hay pedidos en cola</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Footer -->
+    <footer id="app-footer">
+        <span>Inteligencia Ambiental — Universidad de Jaén — 2026</span>
+        <span class="footer-separator">|</span>
+        <span>Equipo F</span>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/mqtt@5.5.0/dist/mqtt.min.js"></script>
+    <script src="map_renderer.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
