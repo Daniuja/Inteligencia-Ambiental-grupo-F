@@ -15,9 +15,9 @@
 
 const CONFIG = {
     // MQTT Broker
-    BROKER_HOST: '192.168.1.134',
-    BROKER_WS_PORT: 1883,
-    BROKER_URL: 'ws://192.168.1.134:1883/mqtt',
+    BROKER_HOST: '192.168.0.100',
+    BROKER_WS_PORT: 9001,
+    BROKER_URL: 'ws://192.168.0.100:9001',
 
     // Team
     TEAM_LETTER: 'F',
@@ -160,6 +160,27 @@ function handleMapMessage(payload) {
     updateMapStatus(true);
     populatePickupSelectors(MapRenderer.getPickupPoints());
     showToast('Mapa de la ciudad recibido', 'success');
+}
+
+function publishMapToRobot(mapString) {
+    /**
+     * Publica el mapa al robot a través de MQTT.
+     * El robot se suscribe al topic 'map' y espera recibir la cadena del mapa.
+     */
+    if (!state.mqttClient || !state.connected) {
+        showToast('Error: No conectado al broker MQTT', 'error');
+        console.error('MQTT client not connected');
+        return;
+    }
+
+    try {
+        state.mqttClient.publish(CONFIG.TOPIC_MAP, mapString);
+        console.log('✅ Mapa publicado al robot');
+        showToast('Mapa enviado al robot ✅', 'success');
+    } catch (err) {
+        console.error('Error publishing map:', err);
+        showToast('Error al enviar el mapa', 'error');
+    }
 }
 
 function handleOdometryMessage(payload) {

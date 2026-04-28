@@ -12,17 +12,17 @@ NOTA: El EV3 con firmware Pybricks tiene acceso completo al SO Linux
       o como alternativa se ejecutan comandos mosquitto_pub/sub vía subprocess.
 """
 
-import ujson  # type: ignore
-import usocket  # type: ignore
-import ustruct  # type: ignore
-import utime  # type: ignore
+import ujson
+import usocket
+import ustruct
+import utime
 
 
 # =============================================================================
 # CONFIGURACIÓN MQTT
 # =============================================================================
 
-MQTT_BROKER = "192.168.1.122"
+MQTT_BROKER = "192.168.0.100"
 MQTT_PORT = 1883
 TEAM_LETTER = "F"  # Letra del equipo en Platea
 
