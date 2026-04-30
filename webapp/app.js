@@ -160,6 +160,12 @@ function handleMapMessage(payload) {
     updateMapStatus(true);
     populatePickupSelectors(MapRenderer.getPickupPoints());
     showToast('Mapa de la ciudad recibido', 'success');
+    
+    // Publicar automáticamente el mapa al robot
+    if (state.mqttClient && state.connected) {
+        console.log('📤 Reenviando mapa al robot...');
+        publishMapToRobot(payload);
+    }
 }
 
 function publishMapToRobot(mapString) {

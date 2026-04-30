@@ -75,6 +75,9 @@ const MapRenderer = (() => {
     let robotAngle = 0;       // degrees (0 = up)
     let robotPath = [];       // planned path as [{row, col}, ...]
 
+    // Block images
+    let blockImages = {};     // { 0: Image, 1: Image, ... }
+
     // Animation
     let animFrame = null;
     let robotPulse = 0;
@@ -99,8 +102,19 @@ const MapRenderer = (() => {
         canvas.style.width = rect.width + 'px';
         canvas.style.height = rect.height + 'px';
 
+        preloadBlockImages();
         calculateCellSize();
         startAnimation();
+    }
+
+    function preloadBlockImages() {
+        /**Precarga las imágenes de los bloques (00-11)*/
+        for (let i = 0; i < 12; i++) {
+            const blockNum = String(i).padStart(2, '0');
+            const img = new Image();
+            img.src = `images/bloques-${blockNum}.png`;
+            blockImages[i] = img;
+        }
     }
 
     function calculateCellSize() {
@@ -250,113 +264,22 @@ const MapRenderer = (() => {
                 const y = padding + row * cellH;
                 const blockId = grid[row][col];
 
-                if (blockId === 0) {
-                    drawBuilding(x, y);
+                // Draw block image
+                const img = blockImages[blockId];
+                if (img && img.complete) {
+                    ctx.drawImage(img, x, y, cellW, cellH);
                 } else {
-                    drawStreetBlock(x, y, blockId);
+                    // Fallback: draw placeholder while loading
+                    ctx.fillStyle = blockId === 0 ? '#dc2626' : '#f1f5f9';
+                    ctx.fillRect(x, y, cellW, cellH);
                 }
             }
         }
     }
 
-    function drawBuilding(x, y) {
-        // Building background
-        ctx.fillStyle = COLORS.building;
-        ctx.fillRect(x + 1, y + 1, cellW - 2, cellH - 2);
+    // Removed: drawBuilding() - now using image bloques-00.png
 
-        // Building pattern (cross-hatch)
-        ctx.strokeStyle = COLORS.buildingPattern;
-        ctx.lineWidth = 0.5;
-        const step = 8;
-        for (let i = 0; i < cellW + cellH; i += step) {
-            ctx.beginPath();
-            ctx.moveTo(x + Math.max(0, i - cellH), y + Math.min(cellH, i));
-            ctx.lineTo(x + Math.min(cellW, i), y + Math.max(0, i - cellW));
-            ctx.stroke();
-        }
-
-        // Building icon (circle)
-        const cx = x + cellW / 2;
-        const cy = y + cellH / 2;
-        ctx.beginPath();
-        ctx.arc(cx, cy, Math.min(cellW, cellH) * 0.25, 0, Math.PI * 2);
-        ctx.fillStyle = COLORS.buildingStroke;
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-    }
-
-    function drawStreetBlock(x, y, blockId) {
-        const dirs = BLOCK_DIRECTIONS[blockId] || [];
-        const cx = x + cellW / 2;
-        const cy = y + cellH / 2;
-        const streetWidth = cellW * 0.35;
-
-        // White background
-        ctx.fillStyle = COLORS.streetBg;
-        ctx.fillRect(x + 1, y + 1, cellW - 2, cellH - 2);
-
-        // Draw street lines for each direction
-        ctx.fillStyle = '#e2e8f0';
-
-        for (const dir of dirs) {
-            switch (dir) {
-                case 'up':
-                    ctx.fillRect(cx - streetWidth / 2, y, streetWidth, cellH / 2);
-                    break;
-                case 'down':
-                    ctx.fillRect(cx - streetWidth / 2, cy, streetWidth, cellH / 2);
-                    break;
-                case 'left':
-                    ctx.fillRect(x, cy - streetWidth / 2, cellW / 2, streetWidth);
-                    break;
-                case 'right':
-                    ctx.fillRect(cx, cy - streetWidth / 2, cellW / 2, streetWidth);
-                    break;
-            }
-        }
-
-        // Draw border lines on streets
-        ctx.strokeStyle = COLORS.streetLine;
-        ctx.lineWidth = 1.5;
-
-        for (const dir of dirs) {
-            ctx.beginPath();
-            switch (dir) {
-                case 'up':
-                    ctx.moveTo(cx - streetWidth / 2, y + 1);
-                    ctx.lineTo(cx - streetWidth / 2, cy);
-                    ctx.moveTo(cx + streetWidth / 2, y + 1);
-                    ctx.lineTo(cx + streetWidth / 2, cy);
-                    break;
-                case 'down':
-                    ctx.moveTo(cx - streetWidth / 2, cy);
-                    ctx.lineTo(cx - streetWidth / 2, y + cellH - 1);
-                    ctx.moveTo(cx + streetWidth / 2, cy);
-                    ctx.lineTo(cx + streetWidth / 2, y + cellH - 1);
-                    break;
-                case 'left':
-                    ctx.moveTo(x + 1, cy - streetWidth / 2);
-                    ctx.lineTo(cx, cy - streetWidth / 2);
-                    ctx.moveTo(x + 1, cy + streetWidth / 2);
-                    ctx.lineTo(cx, cy + streetWidth / 2);
-                    break;
-                case 'right':
-                    ctx.moveTo(cx, cy - streetWidth / 2);
-                    ctx.lineTo(x + cellW - 1, cy - streetWidth / 2);
-                    ctx.moveTo(cx, cy + streetWidth / 2);
-                    ctx.lineTo(x + cellW - 1, cy + streetWidth / 2);
-                    break;
-            }
-            ctx.stroke();
-        }
-
-        // Center square (reference point)
-        const sqSize = Math.min(cellW, cellH) * 0.15;
-        ctx.fillStyle = COLORS.centerSquare;
-        ctx.fillRect(cx - sqSize / 2, cy - sqSize / 2, sqSize, sqSize);
-    }
+    // Removed: drawStreetBlock() - now using image bloques-01.png through bloques-11.png
 
     function drawPickupPoints() {
         for (const [row, col] of pickupPoints) {
