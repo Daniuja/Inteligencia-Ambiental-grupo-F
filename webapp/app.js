@@ -15,9 +15,9 @@
 
 const CONFIG = {
     // MQTT Broker
-    BROKER_HOST: '192.168.0.105',
+    BROKER_HOST: '192.168.0.100',
     BROKER_WS_PORT: 9001,
-    BROKER_URL: 'ws://192.168.0.105:9001',
+    BROKER_URL: 'ws://192.168.0.100:9001',
 
     // Team
     TEAM_LETTER: 'F',
@@ -152,6 +152,9 @@ function connectMQTT() {
 // =============================================================================
 
 function handleMapMessage(payload) {
+    if (state.mapString === payload) {
+        return; // Evitar bucle infinito al recibir nuestro propio mensaje
+    }
     console.log('🗺️ Mapa recibido:', payload.substring(0, 30) + '...');
     state.mapString = payload;
     state.mapLoaded = true;

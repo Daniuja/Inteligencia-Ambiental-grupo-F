@@ -65,7 +65,12 @@ class RobotHardware:
 
         # Sensores
         self.color_sensor = ColorSensor(COLOR_SENSOR_PORT)
-        self.gyro_sensor = GyroSensor(GYRO_SENSOR_PORT)
+        try:
+            self.gyro_sensor = GyroSensor(GYRO_SENSOR_PORT)
+            print("Giroscopio detectado en el puerto", GYRO_SENSOR_PORT)
+        except Exception:
+            self.gyro_sensor = None
+            print("AVISO: No se detecta giroscopio en el puerto", GYRO_SENSOR_PORT)
 
         # DriveBase para control cinemático
         self.drive_base = DriveBase(
@@ -163,13 +168,16 @@ class RobotHardware:
         Lee el ángulo acumulado del giroscopio.
 
         Returns:
-            int: Ángulo en grados
+            int: Ángulo en grados, o 0 si no hay giroscopio.
         """
+        if self.gyro_sensor is None:
+            return 0
         return self.gyro_sensor.angle()
 
     def reset_gyro(self, angle=0):
         """Resetea el ángulo del giroscopio."""
-        self.gyro_sensor.reset_angle(angle)
+        if self.gyro_sensor is not None:
+            self.gyro_sensor.reset_angle(angle)
 
     # =========================================================================
     # PALA (RECOGIDA / ENTREGA)
