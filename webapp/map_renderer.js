@@ -1,7 +1,7 @@
 /**
  * map_renderer.js — Renderizador del mapa de la ciudad en Canvas.
  *
- * Dibuja el grid 7×5 con bloques de edificios, calles, puntos de
+ * Dibuja el grid 7 filas × 5 columnas con bloques de edificios, calles, puntos de
  * recogida/entrega, y la posición del robot en tiempo real.
  */
 
@@ -10,8 +10,8 @@ const MapRenderer = (() => {
     // CONSTANTES
     // =========================================================================
 
-    const MAP_ROWS = 5;
-    const MAP_COLS = 7;
+    const MAP_ROWS = 7;
+    const MAP_COLS = 5;
 
     // Direcciones de cada tipo de bloque
     const BLOCK_DIRECTIONS = {

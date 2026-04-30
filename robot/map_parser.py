@@ -3,7 +3,7 @@ map_parser.py — Decodificación y análisis del mapa de la ciudad.
 
 El mapa se recibe como una cadena de caracteres desde el servidor MQTT,
 donde cada par de dígitos representa el ID de un bloque. El orden es por
-filas: primero bloque (0,0), luego (0,1), ..., hasta (4,6).
+filas: primero bloque (0,0), luego (0,1), ..., hasta (6,4).
 
 IDs de bloque:
   00 - Edificio (sin entrada)
@@ -21,8 +21,8 @@ IDs de bloque:
 """
 
 # Dimensiones del mapa (filas x columnas)
-MAP_ROWS = 5
-MAP_COLS = 7
+MAP_ROWS = 7
+MAP_COLS = 5
 
 # Tamaño de cada bloque en mm
 BLOCK_SIZE_MM = 280
@@ -73,7 +73,7 @@ class CityMap:
         self.grid = []           # Matriz MAP_ROWS x MAP_COLS de IDs de bloque
         self.adjacency = {}      # Grafo: (fila, col) -> lista de (fila, col) vecinos
         self.pickup_points = []  # Bloques con solo 1 entrada/salida
-        self.start_position = (MAP_ROWS - 1, 0)  # Esquina inferior izquierda (6,0 -> fila 4, col 0 en grid 5x7)
+        self.start_position = (MAP_ROWS - 1, 0)  # Esquina inferior izquierda (fila 6, col 0 en grid 7x5)
 
     def parse(self, map_string):
         """
