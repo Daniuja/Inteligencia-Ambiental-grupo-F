@@ -270,8 +270,8 @@ class Navigator:
         if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
             return
 
-        # Patrón de búsqueda inicial: 45 grados por lado (1 seg * 45 deg/s = 45 grados)
-        search_time = 1000  
+        # Patrón de búsqueda inicial: aumentado un 30% más por petición (1.3 seg * 45 deg/s = ~58 grados)
+        search_time = 1300  
         
         while True:
             # 1. Buscar hacia la derecha
