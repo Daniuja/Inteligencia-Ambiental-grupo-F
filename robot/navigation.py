@@ -232,9 +232,8 @@ class Navigator:
     def turn_to_direction(self, target_direction):
         """
         Gira el robot para que mire en la dirección objetivo.
-
-        Args:
-            target_direction: UP, DOWN, LEFT o RIGHT
+        Gira una primera parte a ciegas y luego sigue girando en la 
+        misma dirección hasta clavar la línea verde.
         """
         target_angle = DIRECTION_TO_ANGLE[target_direction]
         current_angle = DIRECTION_TO_ANGLE[self.current_heading]
@@ -249,7 +248,26 @@ class Navigator:
             delta += 360
 
         if delta != 0:
-            self.robot.turn(delta)
+            from pybricks.tools import StopWatch, wait
+            
+            # 1. Girar "a ciegas" el 60% del ángulo.
+            # Esto nos asegura saltarnos cualquier línea perpendicular sin llegar a pasarnos.
+            blind_turn = delta * 0.6
+            self.robot.turn(blind_turn)
+
+            # 2. Seguir girando en la MISMA dirección hasta pisar la línea verde
+            sweep_speed = 45 if delta > 0 else -45
+            self.robot.drive(0, sweep_speed)
+            
+            timer = StopWatch()
+            # Búsqueda máxima de 3 segundos (por si acaso el mapa se acaba o hay un error físico)
+            while timer.time() < 3000:
+                r, g, b = self.robot.read_rgb()
+                if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
+                    break
+                wait(10)
+                
+            self.robot.stop()
 
         self.current_heading = target_direction
         self.current_heading_angle = target_angle
@@ -263,7 +281,7 @@ class Navigator:
         from pybricks.tools import wait, StopWatch
         timer = StopWatch()
         
-        sweep_speed = 45  # Un poco más rápido (45 deg/s) a petición del usuario
+        sweep_speed = 60  # Un poco más rápido (45 deg/s) a petición del usuario
         
         # 1. ¿Estamos ya en la línea?
         r, g, b = self.robot.read_rgb()
@@ -271,7 +289,7 @@ class Navigator:
             return
 
         # Patrón de búsqueda inicial: aumentado un 30% más por petición (1.3 seg * 45 deg/s = ~58 grados)
-        search_time = 1300  
+        search_time = 1800  
         
         while True:
             # 1. Buscar hacia la derecha
