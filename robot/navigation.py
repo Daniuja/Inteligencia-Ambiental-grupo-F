@@ -150,7 +150,10 @@ class Navigator:
 
         timer = StopWatch()
         black_detected = False
-        min_distance = 100  # mm mínimo antes de buscar el cuadrado negro
+        min_distance = 120  # Aumentado para evitar saltos falsos
+        black_count = 0     # Contador para asegurar el cuadrado negro
+        
+        SPEED = 80  # Velocidad un poco más baja para que no se salga de la línea verde
 
         self.robot.reset_odometry()
 
@@ -159,24 +162,25 @@ class Navigator:
             reflection = self.robot.read_reflection()
 
             # Controlador proporcional para seguimiento de línea verde.
-            # Si greenness > umbral → estamos sobre la línea, girar menos.
-            # Si greenness < umbral → nos salimos, corregir.
             deviation = self.LINE_THRESHOLD - greenness
             turn_rate = self.PROPORTIONAL_GAIN * deviation
-            self.robot.drive(self.LINE_SPEED, turn_rate)
+            self.robot.drive(SPEED, turn_rate)
 
             distance = abs(self.robot.get_distance())
 
             # Buscar el cuadrado negro central después de recorrer una distancia mínima
             if distance > min_distance and reflection < self.BLACK_SQUARE_THRESHOLD:
-                if not black_detected:
-                    black_detected = True
-                    # Avanzar un poco más para centrarse en el bloque
-                    self.robot.stop()
-                    self.robot.move_straight(30)  # Ajuste fino (CALIBRAR)
-                    return True
+                black_count += 1
+                if black_count >= 2:  # Confirmamos con 2 lecturas seguidas
+                    if not black_detected:
+                        black_detected = True
+                        self.robot.stop()
+                        self.robot.move_straight(40)  # Ajuste para dejar las ruedas en el centro
+                        return True
+            else:
+                black_count = 0  # Reseteamos si vuelve a ver verde/blanco
 
-            # Timeout de seguridad: si recorremos más de 2 bloques sin detectar, parar
+            # Timeout de seguridad
             if distance > BLOCK_SIZE_MM * 2:
                 self.robot.stop()
                 return False
