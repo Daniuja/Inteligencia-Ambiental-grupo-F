@@ -123,91 +123,60 @@ class Navigator:
     PROPORTIONAL_GAIN = 1.5  # Ganancia proporcional del PID
     LINE_SPEED = 80         # Velocidad de seguimiento de línea verde (mm/s)
 
-    # Detección de cuadrado negro central (punto de referencia en cada celda).
-    # Las líneas negras del borde de la cuadrícula son estrechas (~5-10mm) y
-    # el robot las cruza rápido. Los cuadrados negros centrales son más anchos
-    # (~20-30mm), así que el robot permanece más tiempo sobre ellos.
-    BLACK_SQUARE_THRESHOLD = 15  # Reflectancia por debajo → superficie negra
-    BLACK_SQUARE_MIN_READS = 3   # Lecturas consecutivas de negro para confirmar
-    GREEN_ABSENCE_THRESHOLD = 8  # Verdosidad por debajo → NO estamos en verde
+    # NUEVO: Intensidad para el cuadrado negro (R + G + B)
+    # El negro absorbe luz, por lo que R, G y B serán bajos.
+    BLACK_INTENSITY_THRESHOLD = 45  # (CALIBRAR, ej: 15+15+15=45)
 
-    # Distancia mínima antes de buscar cuadrado negro (% del bloque).
-    # Evita que las líneas negras del borde al salir de la celda actual
-    # se confundan con el cuadrado negro de la celda siguiente.
-    MIN_DISTANCE_FACTOR = 0.55   # 55% de BLOCK_SIZE_MM
-
-    def _compute_greenness(self):
-        """
-        Calcula la puntuación de 'verdosidad' a partir del sensor RGB.
-
-        Returns:
-            float: G - max(R, B). Positivo alto = verde, cercano a 0 = blanco.
-        """
-        r, g, b = self.robot.read_rgb()
+    def _compute_greenness(self, r, g, b):
+        """Calcula la puntuación de verdosidad a partir del RGB."""
         return g - max(r, b)
-
-    def _is_black_square(self, reflection, greenness):
-        """
-        Determina si la lectura actual corresponde a un cuadrado negro
-        y NO a una línea verde ni a una línea negra de borde estrecha.
-
-        Args:
-            reflection: Valor de reflectancia (0-100)
-            greenness:  Puntuación de verdosidad (G - max(R, B))
-
-        Returns:
-            bool: True si parece un cuadrado negro real
-        """
-        return (reflection < self.BLACK_SQUARE_THRESHOLD and
-                greenness < self.GREEN_ABSENCE_THRESHOLD)
 
     def follow_line_to_next_block(self):
         """
-        Sigue la línea verde hasta el centro del siguiente bloque.
-        Usa los valores RGB del sensor de color para calcular la "verdosidad"
-        y un controlador proporcional para mantenerse sobre la línea verde.
-
-        Detección de cuadrado negro:
-        - No busca negro hasta haber recorrido el 55% de un bloque (ignora
-          la línea negra de borde al salir de la celda actual).
-        - Requiere N lecturas consecutivas de negro SIN presencia de verde,
-          para distinguir el cuadrado ancho del borde estrecho.
-
-        Returns:
-            bool: True si llegó al centro del siguiente bloque
+        Sigue la línea verde usando SOLO MODO RGB para evitar que el sensor
+        se bloquee cambiando de luz blanca a luz roja.
         """
-        from pybricks.tools import wait
+        from pybricks.tools import wait, StopWatch
 
-        black_count = 0  # Lecturas consecutivas de cuadrado negro
-        min_distance = BLOCK_SIZE_MM * self.MIN_DISTANCE_FACTOR
+        timer = StopWatch()
+        black_detected = False
+        min_distance = 120  # Aumentado para evitar saltos falsos
+        black_count = 0     # Contador para asegurar el cuadrado negro
+        
+        SPEED = 80  # Velocidad un poco más baja para que no se salga
 
         self.robot.reset_odometry()
 
         while True:
-            greenness = self._compute_greenness()
-            reflection = self.robot.read_reflection()
+            # LEEMOS SOLO EL MODO RGB (Súper rápido, sin bloqueos)
+            r, g, b = self.robot.read_rgb()
+            
+            # 1. Calculamos la línea para seguirla
+            greenness = self._compute_greenness(r, g, b)
+            
+            # 2. Calculamos la intensidad de luz para ver si es negro
+            intensity = r + g + b
 
-            # Controlador proporcional para seguimiento de línea verde.
+            # Controlador proporcional
             deviation = self.LINE_THRESHOLD - greenness
             turn_rate = self.PROPORTIONAL_GAIN * deviation
-            self.robot.drive(self.LINE_SPEED, turn_rate)
+            self.robot.drive(SPEED, turn_rate)
 
             distance = abs(self.robot.get_distance())
 
-            # Buscar el cuadrado negro central después de la distancia mínima
-            if distance > min_distance:
-                if self._is_black_square(reflection, greenness):
-                    black_count += 1
-                    if black_count >= self.BLACK_SQUARE_MIN_READS:
-                        # Confirmado: estamos sobre el cuadrado negro central
+            # Buscar el cuadrado negro (intensidad total muy baja)
+            if distance > min_distance and intensity < self.BLACK_INTENSITY_THRESHOLD:
+                black_count += 1
+                if black_count >= 2:  # Confirmamos con 2 lecturas seguidas
+                    if not black_detected:
+                        black_detected = True
                         self.robot.stop()
-                        self.robot.move_straight(40)  # Centrar ruedas (CALIBRAR)
+                        self.robot.move_straight(40)  # Ajuste de centrado
                         return True
-                else:
-                    # Era un cruce rápido de línea de borde, resetear
-                    black_count = 0
+            else:
+                black_count = 0  # Reseteamos si vuelve a ver verde/blanco
 
-            # Timeout de seguridad: si recorremos más de 2 bloques sin detectar, parar
+            # Timeout de seguridad
             if distance > BLOCK_SIZE_MM * 2:
                 self.robot.stop()
                 return False
