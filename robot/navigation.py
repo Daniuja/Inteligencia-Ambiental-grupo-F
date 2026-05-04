@@ -255,42 +255,54 @@ class Navigator:
     def realign_to_line(self):
         """
         Hace un barrido (sweep) izquierda-derecha para encontrar
-        la línea verde y quedarse centrado. Se llama cuando el robot
-        sale del cuadrado negro y está desviado.
+        la línea verde y quedarse centrado. Búsqueda infinita y progresiva.
         """
-        from pybricks.tools import wait
+        from pybricks.tools import wait, StopWatch
+        timer = StopWatch()
         
-        sweep_speed = 60  # Grados por segundo (más rápido)
+        sweep_speed = 30  # Muy lento para detectarla perfectamente
         
         # 1. ¿Estamos ya en la línea?
         r, g, b = self.robot.read_rgb()
         if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
             return
 
-        # 2. Buscar hacia la derecha un buen trozo
-        self.robot.drive(0, sweep_speed)
-        for _ in range(25):  # Unos 500ms max (30 grados)
-            r, g, b = self.robot.read_rgb()
-            if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
-                self.robot.stop()
-                return
-            wait(20)
-        self.robot.stop()
-
-        # 3. Si no está a la derecha, buscar a la izquierda el doble (cubrir centro y el otro lado)
-        self.robot.drive(0, -sweep_speed)
-        for _ in range(50):  # Unos 1000ms max (60 grados)
-            r, g, b = self.robot.read_rgb()
-            if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
-                self.robot.stop()
-                return
-            wait(20)
-        self.robot.stop()
+        # Patrón de búsqueda: Empezar buscando poco, e ir abriendo el abanico
+        search_time = 1000  # 1 segundo = 30 grados
         
-        # 4. Si tampoco la encuentra, volvemos al centro aprox para no liarla
-        self.robot.drive(0, sweep_speed)
-        wait(500)
-        self.robot.stop()
+        while True:
+            # 1. Buscar hacia la derecha
+            self.robot.drive(0, sweep_speed)
+            timer.reset()
+            while timer.time() < search_time:
+                r, g, b = self.robot.read_rgb()
+                if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
+                    self.robot.stop()
+                    return
+                wait(10)
+                
+            # 2. Buscar hacia la izquierda el doble de tiempo (cruza el centro)
+            self.robot.drive(0, -sweep_speed)
+            timer.reset()
+            while timer.time() < search_time * 2:
+                r, g, b = self.robot.read_rgb()
+                if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
+                    self.robot.stop()
+                    return
+                wait(10)
+                
+            # 3. Volver al centro (derecha de nuevo)
+            self.robot.drive(0, sweep_speed)
+            timer.reset()
+            while timer.time() < search_time:
+                r, g, b = self.robot.read_rgb()
+                if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
+                    self.robot.stop()
+                    return
+                wait(10)
+                
+            # Si seguimos sin encontrarla, ampliamos el rango de búsqueda y repetimos
+            search_time += 1000
 
     # =========================================================================
     # NAVEGACIÓN COMPLETA
