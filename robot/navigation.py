@@ -107,8 +107,8 @@ class Navigator:
 
         # Estado de navegación
         self.current_pos = city_map.start_position  # (fila, col)
-        self.current_heading = UP  # Orientación inicial: mirando hacia arriba
-        self.current_heading_angle = 0  # 0 = arriba
+        self.current_heading = RIGHT  # Orientación inicial: mirando hacia la derecha
+        self.current_heading_angle = 90  # 90 = derecha
 
     # =========================================================================
     # SEGUIMIENTO DE LÍNEA VERDE (Categoría C)
@@ -120,7 +120,8 @@ class Navigator:
     GREEN_ON_LINE = 35      # Verdosidad típica sobre la línea verde (CALIBRAR)
     GREEN_OFF_LINE = 5      # Verdosidad típica fuera de la línea (CALIBRAR)
     LINE_THRESHOLD = 20     # Umbral = (ON + OFF) / 2 aprox. (CALIBRAR)
-    PROPORTIONAL_GAIN = 1.5  # Ganancia proporcional del PID
+    PROPORTIONAL_GAIN = 3.5  # Ganancia proporcional (Kp) aumentada para girar rápido
+    DERIVATIVE_GAIN = 2.0    # Ganancia derivativa (Kd) para frenar oscilaciones
     LINE_SPEED = 80         # Velocidad de seguimiento de línea verde (mm/s)
 
     # NUEVO: Intensidad para el cuadrado negro (R + G + B)
@@ -133,50 +134,74 @@ class Navigator:
 
     def follow_line_to_next_block(self):
         """
-        Sigue la línea verde usando SOLO MODO RGB para evitar que el sensor
-        se bloquee cambiando de luz blanca a luz roja.
+        Sigue la línea verde usando controlador PD y una máquina de estados
+        para cruzar la línea de frontera negra antes de parar en el centro negro.
         """
         from pybricks.tools import wait, StopWatch
 
-        timer = StopWatch()
-        black_detected = False
-        min_distance = 120  # Aumentado para evitar saltos falsos
-        black_count = 0     # Contador para asegurar el cuadrado negro
+        SPEED = self.LINE_SPEED
+        last_deviation = 0
         
-        SPEED = 80  # Velocidad un poco más baja para que no se salga
+        # Máquina de estados para avanzar por el bloque
+        # 0 = Saliendo del cuadrado central actual (ignorando negro)
+        # 1 = Buscando la línea negra de frontera
+        # 2 = Cruzando la frontera (esperando verde de nuevo)
+        # 3 = Buscando el cuadrado negro central de destino
+        fase = 0
+        black_count = 0
 
         self.robot.reset_odometry()
 
         while True:
-            # LEEMOS SOLO EL MODO RGB (Súper rápido, sin bloqueos)
             r, g, b = self.robot.read_rgb()
-            
-            # 1. Calculamos la línea para seguirla
             greenness = self._compute_greenness(r, g, b)
-            
-            # 2. Calculamos la intensidad de luz para ver si es negro
             intensity = r + g + b
 
-            # Controlador proporcional
+            # Controlador PD
             deviation = self.LINE_THRESHOLD - greenness
-            turn_rate = self.PROPORTIONAL_GAIN * deviation
-            self.robot.drive(SPEED, turn_rate)
+            turn_rate = (self.PROPORTIONAL_GAIN * deviation) + (self.DERIVATIVE_GAIN * (deviation - last_deviation))
+            last_deviation = deviation
+            
+            # Frenar ligeramente si el giro es muy brusco (curva fuerte)
+            current_speed = SPEED
+            if abs(turn_rate) > 40:
+                current_speed = SPEED - 20
+                
+            self.robot.drive(current_speed, turn_rate)
 
-            distance = abs(self.robot.get_distance())
-
-            # Buscar el cuadrado negro (intensidad total muy baja)
-            if distance > min_distance and intensity < self.BLACK_INTENSITY_THRESHOLD:
+            # Máquina de estados para fronteras e intersecciones
+            is_black = intensity < self.BLACK_INTENSITY_THRESHOLD
+            
+            if is_black:
                 black_count += 1
-                if black_count >= 2:  # Confirmamos con 2 lecturas seguidas
-                    if not black_detected:
-                        black_detected = True
-                        self.robot.stop()
-                        self.robot.move_straight(40)  # Ajuste de centrado
-                        return True
             else:
-                black_count = 0  # Reseteamos si vuelve a ver verde/blanco
+                black_count = 0
+
+            if fase == 0:
+                # Saliendo: ignorar negro hasta ver verde continuo
+                if not is_black:
+                    fase = 1
+                    
+            elif fase == 1:
+                # Buscando frontera: esperar a detectar negro firme
+                if black_count >= 2:
+                    fase = 2
+                    
+            elif fase == 2:
+                # Cruzando frontera: ignorar negro hasta volver a ver verde
+                if not is_black:
+                    fase = 3
+                    
+            elif fase == 3:
+                # Buscando centro: esperar al cuadrado negro central
+                if black_count >= 2:
+                    # ¡Llegamos al centro!
+                    self.robot.stop()
+                    self.robot.move_straight(40)  # Centrar ruedas
+                    return True
 
             # Timeout de seguridad
+            distance = abs(self.robot.get_distance())
             if distance > BLOCK_SIZE_MM * 2:
                 self.robot.stop()
                 return False
