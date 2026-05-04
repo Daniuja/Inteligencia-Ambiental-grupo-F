@@ -246,3 +246,25 @@ class RobotHardware:
     def get_battery_voltage(self):
         """Obtiene el voltaje de la batería."""
         return self.ev3.battery.voltage()
+
+    # =========================================================================
+    # MELODÍAS
+    # =========================================================================
+
+    def play_delivery_song(self):
+        """Reproduce una melodía festiva de entrega con beeps."""
+        # Melodía: frecuencia (Hz) y duración (ms)
+        melody = [
+            (800, 200),
+            (1000, 200),
+            (1200, 200),
+            (1400, 300),
+            (1200, 150),
+            (1400, 150),
+            (1600, 300),
+        ]
+        
+        print("Reproduciendo melodía de entrega...")
+        for freq, duration in melody:
+            self.ev3.speaker.beep(frequency=freq, duration=duration)
+            wait(50)

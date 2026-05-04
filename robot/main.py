@@ -234,6 +234,7 @@ def execute_order(robot, navigator, mqtt, order, connected, odometry_timer):
 
     # --- FASE 4: Entregar paquete ---
     print("Entregando paquete...")
+    robot.play_delivery_song()
     if connected:
         mqtt.publish_status('delivering')
     navigator.deliver_package()
