@@ -184,18 +184,18 @@ class RobotHardware:
     # =========================================================================
 
     def pala_bajar(self):
-        """Baja la pala para recoger un paquete."""
-        if not self.pala_down:
-            self.pala_motor.run_angle(PALA_SPEED, PALA_DOWN_ANGLE, then=Stop.HOLD)
-            self.pala_down = True
-            self.ev3.speaker.beep(frequency=600, duration=100)
+        """Baja la pala para recoger un paquete (hasta hacer tope físico)."""
+        # Usamos run_until_stalled para que baje hasta tocar el suelo sin quedarse bloqueado
+        self.pala_motor.run_until_stalled(PALA_SPEED, then=Stop.HOLD, duty_limit=40)
+        self.pala_down = True
+        self.ev3.speaker.beep(frequency=600, duration=100)
 
     def pala_subir(self):
-        """Sube la pala para soltar un paquete."""
-        if self.pala_down:
-            self.pala_motor.run_angle(PALA_SPEED, PALA_UP_ANGLE, then=Stop.HOLD)
-            self.pala_down = False
-            self.ev3.speaker.beep(frequency=400, duration=100)
+        """Sube la pala para soltar un paquete (hasta hacer tope físico)."""
+        # Usamos run_until_stalled en dirección contraria hasta tocar arriba
+        self.pala_motor.run_until_stalled(-PALA_SPEED, then=Stop.HOLD, duty_limit=40)
+        self.pala_down = False
+        self.ev3.speaker.beep(frequency=400, duration=100)
 
     # =========================================================================
     # ODOMETRÍA
