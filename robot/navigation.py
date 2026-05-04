@@ -185,6 +185,12 @@ class Navigator:
             if fase == 0:
                 # Saliendo: ignorar negro hasta ver verde continuo
                 if not is_black:
+                    # Acabamos de salir del negro. ¿Estamos en verde o blanco?
+                    if greenness < self.LINE_THRESHOLD:
+                        # Hemos salido al blanco. El robot está torcido (p.ej tras recoger un paquete)
+                        self.robot.stop()
+                        self.realign_to_line()
+                        last_deviation = 0  # Resetear error para no dar un latigazo
                     fase = 1
                     
             elif fase == 1:
@@ -249,21 +255,21 @@ class Navigator:
     def realign_to_line(self):
         """
         Hace un barrido (sweep) izquierda-derecha para encontrar
-        la línea verde y quedarse centrado antes de arrancar.
-        Especialmente útil en casillas perimetrales tras un giro.
+        la línea verde y quedarse centrado. Se llama cuando el robot
+        sale del cuadrado negro y está desviado.
         """
         from pybricks.tools import wait
         
-        sweep_speed = 40  # Grados por segundo
+        sweep_speed = 60  # Grados por segundo (más rápido)
         
         # 1. ¿Estamos ya en la línea?
         r, g, b = self.robot.read_rgb()
         if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
             return
 
-        # 2. Buscar hacia la derecha
+        # 2. Buscar hacia la derecha un buen trozo
         self.robot.drive(0, sweep_speed)
-        for _ in range(15):  # Unos 300ms max
+        for _ in range(25):  # Unos 500ms max (30 grados)
             r, g, b = self.robot.read_rgb()
             if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
                 self.robot.stop()
@@ -273,7 +279,7 @@ class Navigator:
 
         # 3. Si no está a la derecha, buscar a la izquierda el doble (cubrir centro y el otro lado)
         self.robot.drive(0, -sweep_speed)
-        for _ in range(30):  # Unos 600ms max
+        for _ in range(50):  # Unos 1000ms max (60 grados)
             r, g, b = self.robot.read_rgb()
             if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
                 self.robot.stop()
@@ -281,7 +287,10 @@ class Navigator:
             wait(20)
         self.robot.stop()
         
-        # Si no la encuentra, se queda donde está y confía en el PID
+        # 4. Si tampoco la encuentra, volvemos al centro aprox para no liarla
+        self.robot.drive(0, sweep_speed)
+        wait(500)
+        self.robot.stop()
 
     # =========================================================================
     # NAVEGACIÓN COMPLETA
@@ -317,10 +326,6 @@ class Navigator:
         for i, direction in enumerate(directions):
             # 1. Girar hacia la dirección correcta
             self.turn_to_direction(direction)
-
-            # 1.5. RECOLOCARSE buscando la línea verde (si usamos seguimiento)
-            if use_line_following:
-                self.realign_to_line()
 
             # 2. Avanzar un bloque
             if use_line_following:
