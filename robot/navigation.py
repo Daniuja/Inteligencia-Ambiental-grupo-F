@@ -208,7 +208,9 @@ class Navigator:
                 if black_count >= 2:
                     # ¡Llegamos al centro!
                     self.robot.stop()
-                    self.robot.move_straight(40)  # Centrar ruedas
+                    # Avanzamos un poco más para que las RUEDAS queden perfectamente centradas
+                    # Así el giro de 90º será sobre el centro exacto de la casilla.
+                    self.robot.move_straight(65)  
                     return True
 
             # Timeout de seguridad
@@ -268,8 +270,8 @@ class Navigator:
         if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
             return
 
-        # Patrón de búsqueda: Empezar buscando con mucho más ángulo (2.0 seg * 45 deg/s = 90 grados a cada lado)
-        search_time = 2000  
+        # Patrón de búsqueda inicial: 45 grados por lado (1 seg * 45 deg/s = 45 grados)
+        search_time = 1000  
         
         while True:
             # 1. Buscar hacia la derecha
@@ -314,8 +316,8 @@ class Navigator:
                 wait(10)
             self.robot.stop()
             
-            # Ampliamos un poco el rango de búsqueda angular para el próximo ciclo
-            search_time += 500
+            # ATENCIÓN: NO aumentamos el ángulo indefinidamente porque si gira 90 grados 
+            # pillará la línea verde de la que venía. Confiamos en el avance recto.
 
     # =========================================================================
     # NAVEGACIÓN COMPLETA
