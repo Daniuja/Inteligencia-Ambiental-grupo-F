@@ -167,15 +167,20 @@ class Navigator:
             if abs(turn_rate) > 40:
                 current_speed = SPEED - 20
                 
-            self.robot.drive(current_speed, turn_rate)
-
             # Máquina de estados para fronteras e intersecciones
             is_black = intensity < self.BLACK_INTENSITY_THRESHOLD
             
             if is_black:
                 black_count += 1
+                # ¡MAGIA! Si estamos pisando negro, anular el giro y el freno
+                # para cruzar la línea/cuadrado totalmente rectos
+                turn_rate = 0
+                last_deviation = 0
             else:
                 black_count = 0
+
+            # AHORA SÍ aplicamos la velocidad y el giro al robot
+            self.robot.drive(current_speed, turn_rate)
 
             if fase == 0:
                 # Saliendo: ignorar negro hasta ver verde continuo
