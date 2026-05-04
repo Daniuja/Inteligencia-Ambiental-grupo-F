@@ -232,8 +232,7 @@ class Navigator:
     def turn_to_direction(self, target_direction):
         """
         Gira el robot para que mire en la dirección objetivo.
-        Gira una primera parte a ciegas y luego sigue girando en la 
-        misma dirección hasta clavar la línea verde.
+        El giro se hace exacto usando la odometría (giroscopio/motores).
         """
         target_angle = DIRECTION_TO_ANGLE[target_direction]
         current_angle = DIRECTION_TO_ANGLE[self.current_heading]
@@ -248,26 +247,9 @@ class Navigator:
             delta += 360
 
         if delta != 0:
-            from pybricks.tools import StopWatch, wait
-            
-            # 1. Girar "a ciegas" el 60% del ángulo.
-            # Esto nos asegura saltarnos cualquier línea perpendicular sin llegar a pasarnos.
-            blind_turn = delta * 0.6
-            self.robot.turn(blind_turn)
-
-            # 2. Seguir girando en la MISMA dirección hasta pisar la línea verde
-            sweep_speed = 45 if delta > 0 else -45
-            self.robot.drive(0, sweep_speed)
-            
-            timer = StopWatch()
-            # Búsqueda máxima de 3 segundos (por si acaso el mapa se acaba o hay un error físico)
-            while timer.time() < 3000:
-                r, g, b = self.robot.read_rgb()
-                if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
-                    break
-                wait(10)
-                
-            self.robot.stop()
+            # Giro exacto de 90/180 grados sin buscar línea.
+            # El avance recto de fase=0 sacará al robot del cuadrado negro.
+            self.robot.turn(delta)
 
         self.current_heading = target_direction
         self.current_heading_angle = target_angle
