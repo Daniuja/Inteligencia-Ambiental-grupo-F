@@ -111,22 +111,36 @@ class Navigator:
         self.current_heading_angle = 0  # 0 = arriba
 
     # =========================================================================
-    # SEGUIMIENTO DE LÍNEA (Categoría C)
+    # SEGUIMIENTO DE LÍNEA VERDE (Categoría C)
     # =========================================================================
 
-    # Constantes para el controlador PID de seguimiento de línea
-    LINE_BLACK = 9          # Reflectancia de la línea negra (CALIBRAR)
-    LINE_WHITE = 85         # Reflectancia de la superficie blanca (CALIBRAR)
-    LINE_THRESHOLD = 47     # Umbral = (BLACK + WHITE) / 2
-    PROPORTIONAL_GAIN = 1.2  # Ganancia proporcional del PID
+    # Constantes para el controlador PID de seguimiento de línea verde.
+    # La "verdosidad" (greenness) se calcula como: G - max(R, B) del sensor RGB.
+    # Sobre la línea verde el valor es alto; fuera (blanco) es cercano a 0.
+    GREEN_ON_LINE = 35      # Verdosidad típica sobre la línea verde (CALIBRAR)
+    GREEN_OFF_LINE = 5      # Verdosidad típica fuera de la línea (CALIBRAR)
+    LINE_THRESHOLD = 20     # Umbral = (ON + OFF) / 2 aprox. (CALIBRAR)
+    PROPORTIONAL_GAIN = 1.5  # Ganancia proporcional del PID
     LINE_SPEED = 100        # Velocidad de seguimiento de línea (mm/s)
 
     # Reflectancia del cuadrado negro central (punto de referencia)
     BLACK_SQUARE_THRESHOLD = 15  # Por debajo de este valor = cuadrado negro
 
+    def _compute_greenness(self):
+        """
+        Calcula la puntuación de 'verdosidad' a partir del sensor RGB.
+
+        Returns:
+            float: G - max(R, B). Positivo alto = verde, cercano a 0 = blanco.
+        """
+        r, g, b = self.robot.read_rgb()
+        return g - max(r, b)
+
     def follow_line_to_next_block(self):
         """
-        Sigue la línea hasta el centro del siguiente bloque.
+        Sigue la línea verde hasta el centro del siguiente bloque.
+        Usa los valores RGB del sensor de color para calcular la "verdosidad"
+        y un controlador proporcional para mantenerse sobre la línea verde.
         Detecta el cuadrado negro central como punto de parada.
 
         Returns:
@@ -141,10 +155,13 @@ class Navigator:
         self.robot.reset_odometry()
 
         while True:
+            greenness = self._compute_greenness()
             reflection = self.robot.read_reflection()
 
-            # Controlador proporcional para seguimiento de línea
-            deviation = reflection - self.LINE_THRESHOLD
+            # Controlador proporcional para seguimiento de línea verde.
+            # Si greenness > umbral → estamos sobre la línea, girar menos.
+            # Si greenness < umbral → nos salimos, corregir.
+            deviation = self.LINE_THRESHOLD - greenness
             turn_rate = self.PROPORTIONAL_GAIN * deviation
             self.robot.drive(self.LINE_SPEED, turn_rate)
 
