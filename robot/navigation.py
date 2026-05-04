@@ -246,6 +246,43 @@ class Navigator:
         self.current_heading = target_direction
         self.current_heading_angle = target_angle
 
+    def realign_to_line(self):
+        """
+        Hace un barrido (sweep) izquierda-derecha para encontrar
+        la línea verde y quedarse centrado antes de arrancar.
+        Especialmente útil en casillas perimetrales tras un giro.
+        """
+        from pybricks.tools import wait
+        
+        sweep_speed = 40  # Grados por segundo
+        
+        # 1. ¿Estamos ya en la línea?
+        r, g, b = self.robot.read_rgb()
+        if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
+            return
+
+        # 2. Buscar hacia la derecha
+        self.robot.drive(0, sweep_speed)
+        for _ in range(15):  # Unos 300ms max
+            r, g, b = self.robot.read_rgb()
+            if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
+                self.robot.stop()
+                return
+            wait(20)
+        self.robot.stop()
+
+        # 3. Si no está a la derecha, buscar a la izquierda el doble (cubrir centro y el otro lado)
+        self.robot.drive(0, -sweep_speed)
+        for _ in range(30):  # Unos 600ms max
+            r, g, b = self.robot.read_rgb()
+            if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
+                self.robot.stop()
+                return
+            wait(20)
+        self.robot.stop()
+        
+        # Si no la encuentra, se queda donde está y confía en el PID
+
     # =========================================================================
     # NAVEGACIÓN COMPLETA
     # =========================================================================
@@ -280,6 +317,10 @@ class Navigator:
         for i, direction in enumerate(directions):
             # 1. Girar hacia la dirección correcta
             self.turn_to_direction(direction)
+
+            # 1.5. RECOLOCARSE buscando la línea verde (si usamos seguimiento)
+            if use_line_following:
+                self.realign_to_line()
 
             # 2. Avanzar un bloque
             if use_line_following:

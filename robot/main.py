@@ -183,6 +183,7 @@ def execute_order(robot, navigator, mqtt, order, connected, odometry_timer):
     print("Navegando a punto de recogida: {}".format(pickup))
     robot.display_text("Recogida...")
     robot.set_light(Color.ORANGE)
+    robot.pala_subir()  # Asegurar pala arriba durante el viaje inicial
 
     if connected:
         mqtt.publish_status('navigating_pickup', {
