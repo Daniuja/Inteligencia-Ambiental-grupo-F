@@ -256,19 +256,20 @@ class Navigator:
         """
         Hace un barrido (sweep) izquierda-derecha para encontrar
         la línea verde y quedarse centrado. Búsqueda infinita y progresiva.
+        Avanza un poco hacia adelante si no la encuentra en su posición.
         """
         from pybricks.tools import wait, StopWatch
         timer = StopWatch()
         
-        sweep_speed = 30  # Muy lento para detectarla perfectamente
+        sweep_speed = 45  # Un poco más rápido (45 deg/s) a petición del usuario
         
         # 1. ¿Estamos ya en la línea?
         r, g, b = self.robot.read_rgb()
         if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
             return
 
-        # Patrón de búsqueda: Empezar buscando poco, e ir abriendo el abanico
-        search_time = 1000  # 1 segundo = 30 grados
+        # Patrón de búsqueda: Empezar buscando con más ángulo (1.5 seg * 45 deg/s = ~67 grados)
+        search_time = 1500  
         
         while True:
             # 1. Buscar hacia la derecha
@@ -281,7 +282,7 @@ class Navigator:
                     return
                 wait(10)
                 
-            # 2. Buscar hacia la izquierda el doble de tiempo (cruza el centro)
+            # 2. Buscar hacia la izquierda el doble de tiempo (cruza el centro hacia el otro lado)
             self.robot.drive(0, -sweep_speed)
             timer.reset()
             while timer.time() < search_time * 2:
@@ -301,8 +302,20 @@ class Navigator:
                     return
                 wait(10)
                 
-            # Si seguimos sin encontrarla, ampliamos el rango de búsqueda y repetimos
-            search_time += 1000
+            # 4. ¡EL TRUCO MAESTRO! Si no la encuentra, avanzar un poquito en línea recta
+            # (Porque la línea puede empezar un poco más allá, oculta por el cuadrado negro)
+            self.robot.drive(50, 0)  # Velocidad 50 recta
+            timer.reset()
+            while timer.time() < 500:  # Avanza durante medio segundo (~2.5 cm)
+                r, g, b = self.robot.read_rgb()
+                if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
+                    self.robot.stop()
+                    return
+                wait(10)
+            self.robot.stop()
+            
+            # Ampliamos un poco el rango de búsqueda angular para el próximo ciclo
+            search_time += 500
 
     # =========================================================================
     # NAVEGACIÓN COMPLETA
