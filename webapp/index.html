@@ -9,6 +9,59 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* --- Posición Inicial panel --- */
+        .form-row {
+            display: flex;
+            gap: 0.75rem;
+        }
+        .form-group--half {
+            flex: 1;
+        }
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            color: #f8fafc;
+            font-size: 0.95rem;
+            font-family: 'JetBrains Mono', monospace;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-group input[type="number"]:focus {
+            border-color: #22d3ee;
+        }
+        /* Remove number spinners for cleaner look */
+        .form-group input[type="number"]::-webkit-inner-spin-button,
+        .form-group input[type="number"]::-webkit-outer-spin-button {
+            opacity: 0.4;
+        }
+        .btn-secondary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.65rem 1rem;
+            background: rgba(34, 211, 238, 0.12);
+            border: 1px solid rgba(34, 211, 238, 0.35);
+            border-radius: 10px;
+            color: #22d3ee;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background: rgba(34, 211, 238, 0.22);
+            border-color: rgba(34, 211, 238, 0.6);
+        }
+        .btn-secondary:active {
+            transform: scale(0.98);
+        }
+    </style>
 </head>
 <body>
     <!-- Header -->
@@ -107,6 +160,38 @@
                         <span class="odo-value mono" id="odo-turn-rate">0°/s</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- Initial Position -->
+            <div class="card init-card" id="init-card">
+                <div class="card-header">
+                    <h3>📌 Posición Inicial</h3>
+                </div>
+                <form id="init-position-form">
+                    <div class="form-row">
+                        <div class="form-group form-group--half">
+                            <label for="init-row">Fila (0–6)</label>
+                            <input type="number" id="init-row" min="0" max="6" value="4" required>
+                        </div>
+                        <div class="form-group form-group--half">
+                            <label for="init-col">Columna (0–4)</label>
+                            <input type="number" id="init-col" min="0" max="4" value="0" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="init-heading">🧭 Orientación</label>
+                        <select id="init-heading">
+                            <option value="up">↑ Arriba (0°)</option>
+                            <option value="right">→ Derecha (90°)</option>
+                            <option value="down">↓ Abajo (180°)</option>
+                            <option value="left">← Izquierda (270°)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-secondary" id="apply-init-pos">
+                        <span class="btn-icon">📌</span>
+                        Aplicar Posición
+                    </button>
+                </form>
             </div>
 
             <!-- Order Form -->

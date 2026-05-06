@@ -33,6 +33,12 @@ const CONFIG = {
 
     // Simulation
     SIMULATION_MODE: false,  // Conectando al broker MQTT real
+
+    // Initial robot position (editable from the UI)
+    INITIAL_ROW: 4,
+    INITIAL_COL: 0,
+    INITIAL_HEADING: 'up',       // 'up' | 'right' | 'down' | 'left'
+    INITIAL_HEADING_ANGLE: 0,    // degrees: 0=up, 90=right, 180=down, 270=left
 };
 
 // =============================================================================
@@ -48,10 +54,10 @@ const state = {
     orderIdCounter: 0,
     robotState: {
         status: 'idle',
-        row: 4,   // Start position (row 4 in 0-indexed 5-row grid)
-        col: 0,
-        heading: 'up',
-        headingAngle: 0,
+        row: CONFIG.INITIAL_ROW,
+        col: CONFIG.INITIAL_COL,
+        heading: CONFIG.INITIAL_HEADING,
+        headingAngle: CONFIG.INITIAL_HEADING_ANGLE,
         distance: 0,
         speed: 0,
         angle: 0,
@@ -447,10 +453,10 @@ function startSimulation() {
         handleMapMessage(defaultMap);
 
         // Set robot at start position
-        MapRenderer.setRobotPosition(4, 0, 0);
-        state.robotState.row = 4;
-        state.robotState.col = 0;
-        state.robotState.heading = 'up';
+        MapRenderer.setRobotPosition(CONFIG.INITIAL_ROW, CONFIG.INITIAL_COL, CONFIG.INITIAL_HEADING_ANGLE);
+        state.robotState.row = CONFIG.INITIAL_ROW;
+        state.robotState.col = CONFIG.INITIAL_COL;
+        state.robotState.heading = CONFIG.INITIAL_HEADING;
         updatePositionUI();
         updateRobotStatusUI('idle');
     }, 500);
@@ -469,10 +475,59 @@ function startSimulation() {
 }
 
 // =============================================================================
+// INITIAL POSITION CONFIGURATION
+// =============================================================================
+
+const HEADING_TO_ANGLE = { up: 0, right: 90, down: 180, left: 270 };
+
+function applyInitialPosition() {
+    const rowInput  = document.getElementById('init-row');
+    const colInput  = document.getElementById('init-col');
+    const headingSel = document.getElementById('init-heading');
+
+    const row     = parseInt(rowInput.value, 10);
+    const col     = parseInt(colInput.value, 10);
+    const heading = headingSel.value;
+    const angle   = HEADING_TO_ANGLE[heading] ?? 0;
+
+    // Validate bounds
+    if (isNaN(row) || row < 0 || row >= MapRenderer.MAP_ROWS) {
+        showToast(`Fila debe estar entre 0 y ${MapRenderer.MAP_ROWS - 1}`, 'error');
+        return;
+    }
+    if (isNaN(col) || col < 0 || col >= MapRenderer.MAP_COLS) {
+        showToast(`Columna debe estar entre 0 y ${MapRenderer.MAP_COLS - 1}`, 'error');
+        return;
+    }
+
+    // Persist to CONFIG so resets/simulation use the new values
+    CONFIG.INITIAL_ROW            = row;
+    CONFIG.INITIAL_COL            = col;
+    CONFIG.INITIAL_HEADING        = heading;
+    CONFIG.INITIAL_HEADING_ANGLE  = angle;
+
+    // Update live state
+    state.robotState.row          = row;
+    state.robotState.col          = col;
+    state.robotState.heading      = heading;
+    state.robotState.headingAngle = angle;
+
+    MapRenderer.setRobotPosition(row, col, angle);
+    updatePositionUI();
+    showToast(`Posición inicial → (${row}, ${col}) orientación ${HEADING_LABELS[heading]}`, 'success');
+}
+
+// =============================================================================
 // EVENT HANDLERS
 // =============================================================================
 
 function setupEventListeners() {
+    // Initial position form
+    document.getElementById('init-position-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        applyInitialPosition();
+    });
+
     // Order form submission
     document.getElementById('order-form').addEventListener('submit', (e) => {
         e.preventDefault();
@@ -532,6 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
     connectMQTT();
 
     // Set initial robot position on map
-    MapRenderer.setRobotPosition(4, 0, 0);
+    MapRenderer.setRobotPosition(CONFIG.INITIAL_ROW, CONFIG.INITIAL_COL, CONFIG.INITIAL_HEADING_ANGLE);
+    updatePositionUI();
     updateRobotStatusUI('idle');
 });
