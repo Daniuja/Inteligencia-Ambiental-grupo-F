@@ -76,6 +76,7 @@ Parámetros a calibrar:
 |-------|-----------|-------------|
 | `map` | Broker → Robot/Web | Mapa codificado (cada 60s) |
 | `Equipo F/pedidos` | Web → Robot | Pedidos JSON `{pickup, delivery}` |
+| `Equipo F/posicion_inicial` | Web → Robot | Pose inicial JSON `{row, col, heading, heading_angle}` |
 | `Equipo F/odometria` | Robot → Web | Odometría JSON (≥1 Hz) |
 | `Equipo F/estado` | Robot → Web | Estado del robot |
 

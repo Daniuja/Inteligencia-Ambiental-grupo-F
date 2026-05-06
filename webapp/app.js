@@ -15,9 +15,9 @@
 
 const CONFIG = {
     // MQTT Broker
-    BROKER_HOST: '192.168.0.113',
+    BROKER_HOST: '192.168.0.107',
     BROKER_WS_PORT: 9001,
-    BROKER_URL: 'ws://192.168.0.113:9001',
+    BROKER_URL: 'ws://192.168.0.107:9001',
 
     // Team
     TEAM_LETTER: 'F',
@@ -27,6 +27,7 @@ const CONFIG = {
     get TOPIC_ODOMETRY() { return `Equipo ${this.TEAM_LETTER}/odometria`; },
     get TOPIC_ORDERS() { return `Equipo ${this.TEAM_LETTER}/pedidos`; },
     get TOPIC_STATUS() { return `Equipo ${this.TEAM_LETTER}/estado`; },
+    get TOPIC_INITIAL_POSE() { return `Equipo ${this.TEAM_LETTER}/posicion_inicial`; },
 
     // Reconnect
     RECONNECT_INTERVAL: 5000,
@@ -118,6 +119,8 @@ function connectMQTT() {
             client.subscribe(CONFIG.TOPIC_MAP, { qos: 0 });
             client.subscribe(CONFIG.TOPIC_ODOMETRY, { qos: 0 });
             client.subscribe(CONFIG.TOPIC_STATUS, { qos: 0 });
+
+            publishInitialPose(false);
         });
 
         client.on('message', (topic, message) => {
@@ -195,6 +198,35 @@ function publishMapToRobot(mapString) {
     } catch (err) {
         console.error('Error publishing map:', err);
         showToast('Error al enviar el mapa', 'error');
+    }
+}
+
+function publishInitialPose(showSuccess = true) {
+    if (!state.mqttClient || !state.connected) {
+        if (showSuccess) {
+            showToast('Posición guardada en la interfaz; MQTT no está conectado', 'info');
+        }
+        return false;
+    }
+
+    const payload = JSON.stringify({
+        row: CONFIG.INITIAL_ROW,
+        col: CONFIG.INITIAL_COL,
+        heading: CONFIG.INITIAL_HEADING,
+        heading_angle: CONFIG.INITIAL_HEADING_ANGLE,
+    });
+
+    try {
+        state.mqttClient.publish(CONFIG.TOPIC_INITIAL_POSE, payload);
+        console.log('📌 Posición inicial enviada:', payload);
+        if (showSuccess) {
+            showToast('Posición inicial enviada al robot ✅', 'success');
+        }
+        return true;
+    } catch (err) {
+        console.error('Error publishing initial pose:', err);
+        showToast('Error al enviar la posición inicial', 'error');
+        return false;
     }
 }
 
@@ -499,6 +531,13 @@ function applyInitialPosition() {
         showToast(`Columna debe estar entre 0 y ${MapRenderer.MAP_COLS - 1}`, 'error');
         return;
     }
+    if (state.mapLoaded) {
+        const grid = MapRenderer.getGrid();
+        if (!grid || !grid[row] || grid[row][col] === 0) {
+            showToast('La posición inicial debe estar sobre una calle', 'error');
+            return;
+        }
+    }
 
     // Persist to CONFIG so resets/simulation use the new values
     CONFIG.INITIAL_ROW            = row;
@@ -515,7 +554,7 @@ function applyInitialPosition() {
     MapRenderer.setRobotPosition(row, col, angle);
     MapRenderer.render();
     updatePositionUI();
-    showToast(`Posición inicial → (${row}, ${col}) orientación ${HEADING_LABELS[heading]}`, 'success');
+    publishInitialPose();
 }
 
 // =============================================================================
@@ -580,6 +619,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize map renderer
     MapRenderer.init('city-map-canvas');
     MapRenderer.resize();
+
+    // Keep the form in sync with CONFIG defaults
+    document.getElementById('init-row').value = CONFIG.INITIAL_ROW;
+    document.getElementById('init-col').value = CONFIG.INITIAL_COL;
+    document.getElementById('init-heading').value = CONFIG.INITIAL_HEADING;
 
     // Set up event listeners
     setupEventListeners();

@@ -111,6 +111,24 @@ class Navigator:
         self.current_heading_angle = 90  # 90 = derecha
         self.last_turn_delta = 0
 
+    def set_pose(self, row, col, heading):
+        """
+        Actualiza la posicion logica del robot antes de calcular nuevas rutas.
+
+        La interfaz grafica mueve fisicamente el punto de salida. Este metodo
+        sincroniza ese cambio con el planificador para que el siguiente pedido
+        arranque desde la casilla y orientacion seleccionadas.
+        """
+        if heading not in DIRECTION_TO_ANGLE:
+            heading = RIGHT
+
+        self.current_pos = (row, col)
+        self.current_heading = heading
+        self.current_heading_angle = DIRECTION_TO_ANGLE[heading]
+        self.last_turn_delta = 0
+        self.robot.reset_odometry()
+        self.robot.reset_gyro(self.current_heading_angle)
+
     # =========================================================================
     # SEGUIMIENTO DE LÍNEA VERDE (Categoría C)
     # =========================================================================
@@ -131,9 +149,9 @@ class Navigator:
 
     # Compensacion de giro real del robot.
     # En pruebas: 90 ordenados ~= 60 reales, 180 ordenados ~= 150 reales.
-    TURN_90_CORRECTION = 1.25
+    TURN_90_CORRECTION = 1.60
     TURN_180_CORRECTION = 1.25
-    RIGHT_TURN_REDUCTION = 0.90
+    RIGHT_TURN_REDUCTION = 0.60
     RIGHT_TURN_LINE_SEARCH_SPEED = 50
     RIGHT_TURN_LINE_SEARCH_DISTANCE = 90
 

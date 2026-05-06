@@ -70,6 +70,10 @@ const MapRenderer = (() => {
     let cellH = 0;
     let padding = 30;
 
+    // Logical (CSS) canvas dimensions — used for all drawing calculations
+    let canvasW = 0;
+    let canvasH = 0;
+
     // Robot state
     let robotPos = null;      // { row, col }
     let robotAngle = 0;       // degrees (0 = up)
@@ -91,16 +95,18 @@ const MapRenderer = (() => {
         if (!canvas) return;
         ctx = canvas.getContext('2d');
 
-        // Make canvas high DPI
         const dpr = window.devicePixelRatio || 1;
         const rect = canvas.getBoundingClientRect();
 
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        ctx.scale(dpr, dpr);
+        canvasW = rect.width;
+        canvasH = rect.height;
 
-        canvas.style.width = rect.width + 'px';
-        canvas.style.height = rect.height + 'px';
+        canvas.width  = canvasW * dpr;
+        canvas.height = canvasH * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        canvas.style.width  = canvasW + 'px';
+        canvas.style.height = canvasH + 'px';
 
         preloadBlockImages();
         calculateCellSize();
@@ -119,9 +125,8 @@ const MapRenderer = (() => {
 
     function calculateCellSize() {
         if (!canvas) return;
-        const rect = canvas.getBoundingClientRect();
-        const availW = rect.width - padding * 2;
-        const availH = rect.height - padding * 2;
+        const availW = canvasW - padding * 2;
+        const availH = canvasH - padding * 2;
         cellW = availW / MAP_COLS;
         cellH = availH / MAP_ROWS;
         // Keep square cells
@@ -130,8 +135,8 @@ const MapRenderer = (() => {
         cellH = cellSize;
         // Recalculate padding to center
         padding = Math.max(
-            (rect.width - cellW * MAP_COLS) / 2,
-            (rect.height - cellH * MAP_ROWS) / 2
+            (canvasW - cellW * MAP_COLS) / 2,
+            (canvasH - cellH * MAP_ROWS) / 2
         );
     }
 
@@ -223,16 +228,15 @@ const MapRenderer = (() => {
     function render() {
         if (!ctx || !canvas) return;
 
-        const rect = canvas.getBoundingClientRect();
-        ctx.clearRect(0, 0, rect.width, rect.height);
+        ctx.clearRect(0, 0, canvasW, canvasH);
 
         // Background
         ctx.fillStyle = COLORS.background;
-        ctx.fillRect(0, 0, rect.width, rect.height);
+        ctx.fillRect(0, 0, canvasW, canvasH);
 
         if (!grid) {
-            drawEmptyState(rect);
-            drawRobot();   // muestra el robot aunque el mapa no haya llegado aún
+            drawEmptyState();
+            drawRobot();
             return;
         }
 
@@ -248,15 +252,15 @@ const MapRenderer = (() => {
         drawCoordinates();
     }
 
-    function drawEmptyState(rect) {
+    function drawEmptyState() {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
         ctx.font = '600 16px Inter, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('Esperando mapa del servidor MQTT...', rect.width / 2, rect.height / 2 - 15);
+        ctx.fillText('Esperando mapa del servidor MQTT...', canvasW / 2, canvasH / 2 - 15);
         ctx.font = '400 12px Inter, sans-serif';
         ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-        ctx.fillText('El mapa se retransmite cada 60 segundos', rect.width / 2, rect.height / 2 + 15);
+        ctx.fillText('El mapa se retransmite cada 60 segundos', canvasW / 2, canvasH / 2 + 15);
     }
 
     function drawGrid() {
@@ -408,14 +412,17 @@ const MapRenderer = (() => {
         const dpr = window.devicePixelRatio || 1;
         const parent = canvas.parentElement;
         const rect = parent.getBoundingClientRect();
-        const width = rect.width - 40; // minus padding
-        const height = Math.max(350, width * (MAP_ROWS / MAP_COLS) + 60);
 
-        canvas.style.width = width + 'px';
-        canvas.style.height = height + 'px';
-        canvas.width = width * dpr;
-        canvas.height = height * dpr;
-        ctx.scale(dpr, dpr);
+        canvasW = rect.width - 40;
+        canvasH = Math.max(350, canvasW * (MAP_ROWS / MAP_COLS) + 60);
+
+        canvas.style.width  = canvasW + 'px';
+        canvas.style.height = canvasH + 'px';
+        canvas.width  = canvasW * dpr;
+        canvas.height = canvasH * dpr;
+
+        // Reset transform cleanly — avoids cumulative scale on repeated resize
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
         calculateCellSize();
         render();

@@ -22,7 +22,7 @@ import utime
 # CONFIGURACIÓN MQTT
 # =============================================================================
 
-MQTT_BROKER = "192.168.0.113"
+MQTT_BROKER = "192.168.0.107"
 MQTT_PORT = 1883
 TEAM_LETTER = "F"  # Letra del equipo en Platea
 
@@ -31,6 +31,7 @@ TOPIC_MAP = "map"
 TOPIC_ODOMETRY = "Equipo {}/odometria".format(TEAM_LETTER)
 TOPIC_ORDERS = "Equipo {}/pedidos".format(TEAM_LETTER)
 TOPIC_STATUS = "Equipo {}/estado".format(TEAM_LETTER)
+TOPIC_INITIAL_POSE = "Equipo {}/posicion_inicial".format(TEAM_LETTER)
 
 # Intervalo de publicación de odometría (ms)
 ODOMETRY_INTERVAL_MS = 500  # 2 Hz (supera el mínimo de 1 Hz)
@@ -243,6 +244,8 @@ class RobotMQTTClient:
         self.mqtt = SimpleMQTT(client_id, MQTT_BROKER, MQTT_PORT)
         self.map_data = None
         self.pending_orders = []
+        self.initial_pose = None
+        self.initial_pose_dirty = False
         self.last_odometry_time = 0
 
     def connect(self):
@@ -268,6 +271,29 @@ class RobotMQTTClient:
                 print("Error parseando pedido: {}".format(e))
 
         self.mqtt.subscribe(TOPIC_ORDERS, on_order)
+
+    def subscribe_initial_pose(self):
+        """Se suscribe al topic de posicion inicial configurada desde la web."""
+        def on_initial_pose(topic, payload):
+            try:
+                pose = ujson.loads(payload)
+                row = int(pose.get('row', 0))
+                col = int(pose.get('col', 0))
+                heading = pose.get('heading', 'right')
+                heading_angle = int(pose.get('heading_angle', 90))
+
+                self.initial_pose = {
+                    'row': row,
+                    'col': col,
+                    'heading': heading,
+                    'heading_angle': heading_angle,
+                }
+                self.initial_pose_dirty = True
+                print("Posicion inicial recibida: {}".format(self.initial_pose))
+            except Exception as e:
+                print("Error parseando posicion inicial: {}".format(e))
+
+        self.mqtt.subscribe(TOPIC_INITIAL_POSE, on_initial_pose)
 
     def wait_for_map(self, timeout_ms=120000):
         """
@@ -297,6 +323,19 @@ class RobotMQTTClient:
         self.mqtt.check_messages()
         if self.pending_orders:
             return self.pending_orders.pop(0)
+        return None
+
+    def pop_initial_pose(self):
+        """
+        Obtiene la ultima posicion inicial recibida y la marca como aplicada.
+
+        Returns:
+            dict: Pose con row, col, heading y heading_angle, o None.
+        """
+        self.mqtt.check_messages()
+        if self.initial_pose_dirty and self.initial_pose is not None:
+            self.initial_pose_dirty = False
+            return self.initial_pose
         return None
 
     def publish_odometry(self, nav_state):

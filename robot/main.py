@@ -76,6 +76,7 @@ def main():
     if connected:
         mqtt.subscribe_map()
         mqtt.subscribe_orders()
+        mqtt.subscribe_initial_pose()
 
         map_string = mqtt.wait_for_map(timeout_ms=MAP_TIMEOUT_MS)
 
@@ -101,6 +102,9 @@ def main():
     # PASO 4: Inicializar navegador
     # =========================================================================
     navigator = Navigator(robot, city_map)
+    if connected:
+        apply_initial_pose(robot, navigator, mqtt, city_map, mqtt.pop_initial_pose())
+
     print("Navegador inicializado")
     print("Posición inicial: {}".format(navigator.current_pos))
     print("Orientación: {}".format(navigator.current_heading))
@@ -128,6 +132,9 @@ def main():
         # Comprobar mensajes MQTT
         if connected:
             mqtt.check_messages()
+            if apply_initial_pose(robot, navigator, mqtt, city_map, mqtt.pop_initial_pose()):
+                mqtt.publish_odometry(navigator.get_state())
+                odometry_timer.reset()
 
         # Obtener siguiente pedido
         order = None
@@ -156,6 +163,36 @@ def main():
             test_manual(robot, navigator)
 
         wait(50)
+
+
+def apply_initial_pose(robot, navigator, mqtt, city_map, pose):
+    """
+    Aplica una posicion inicial recibida desde la interfaz grafica.
+
+    Returns:
+        bool: True si se aplico una pose nueva, False si no habia pose valida.
+    """
+    if not pose:
+        return False
+
+    row = int(pose.get('row', 0))
+    col = int(pose.get('col', 0))
+    heading = pose.get('heading', 'right')
+
+    if not city_map.is_street(row, col):
+        print("Posicion inicial invalida: ({}, {}) no es calle".format(row, col))
+        robot.display_text("Inicio invalido")
+        if mqtt:
+            mqtt.publish_status('error', {'message': 'Invalid initial position'})
+        return False
+
+    navigator.set_pose(row, col, heading)
+    print("Posicion inicial aplicada: ({}, {}) {}".format(row, col, heading))
+    robot.display_text("Inicio: {},{}".format(row, col))
+    robot.set_light(Color.GREEN)
+    if mqtt:
+        mqtt.publish_status('idle')
+    return True
 
 
 def execute_order(robot, navigator, mqtt, order, connected, odometry_timer):
