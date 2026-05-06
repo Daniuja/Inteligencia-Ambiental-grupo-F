@@ -119,14 +119,14 @@ class Navigator:
     # Sobre la línea verde el valor es alto; fuera (blanco) es cercano a 0.
     GREEN_ON_LINE = 35      # Verdosidad típica sobre la línea verde (CALIBRAR)
     GREEN_OFF_LINE = 5      # Verdosidad típica fuera de la línea (CALIBRAR)
-    LINE_THRESHOLD = 20     # Umbral = (ON + OFF) / 2 aprox. (CALIBRAR)
+    # Umbral = (ON + OFF) / 2 aprox. (CALIBRAR)
+    LINE_THRESHOLD = 20     
     PROPORTIONAL_GAIN = 3.5  # Ganancia proporcional (Kp) aumentada para girar rápido
     DERIVATIVE_GAIN = 2.0    # Ganancia derivativa (Kd) para frenar oscilaciones
     LINE_SPEED = 80         # Velocidad de seguimiento de línea verde (mm/s)
 
-    # NUEVO: Intensidad para el cuadrado negro (R + G + B)
-    # El negro absorbe luz, por lo que R, G y B serán bajos.
-    BLACK_INTENSITY_THRESHOLD = 45  # (CALIBRAR, ej: 15+15+15=45)
+    # REVISADO: Bajamos el umbral para evitar detectar el verde oscuro como negro
+    BLACK_INTENSITY_THRESHOLD = 30  # Antes 45, muy alto
 
     def _compute_greenness(self, r, g, b):
         """Calcula la puntuación de verdosidad a partir del RGB."""
@@ -168,7 +168,8 @@ class Navigator:
                 current_speed = SPEED - 20
                 
             # Máquina de estados para fronteras e intersecciones
-            is_black = intensity < self.BLACK_INTENSITY_THRESHOLD
+            # Mejorado: es negro solo si la intensidad es baja Y no es verde
+            is_black = (intensity < self.BLACK_INTENSITY_THRESHOLD) and (greenness < self.LINE_THRESHOLD)
             
             if is_black:
                 black_count += 1
@@ -263,7 +264,7 @@ class Navigator:
         from pybricks.tools import wait, StopWatch
         timer = StopWatch()
         
-        sweep_speed = 60  # Un poco más rápido (45 deg/s) a petición del usuario
+        sweep_speed = 45  # Ajustado a 45 deg/s para no saltarse la línea
         
         # 1. ¿Estamos ya en la línea?
         r, g, b = self.robot.read_rgb()
