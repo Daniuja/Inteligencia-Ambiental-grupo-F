@@ -513,6 +513,7 @@ function applyInitialPosition() {
     state.robotState.headingAngle = angle;
 
     MapRenderer.setRobotPosition(row, col, angle);
+    MapRenderer.render();
     updatePositionUI();
     showToast(`Posición inicial → (${row}, ${col}) orientación ${HEADING_LABELS[heading]}`, 'success');
 }

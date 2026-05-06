@@ -200,6 +200,7 @@ const MapRenderer = (() => {
     function setRobotPosition(row, col, angle) {
         robotPos = { row, col };
         robotAngle = angle || 0;
+        render();
     }
 
     function setRobotPath(path) {
@@ -231,6 +232,7 @@ const MapRenderer = (() => {
 
         if (!grid) {
             drawEmptyState(rect);
+            drawRobot();   // muestra el robot aunque el mapa no haya llegado aún
             return;
         }
 
