@@ -133,6 +133,7 @@ class Navigator:
     # En pruebas: 90 ordenados ~= 60 reales, 180 ordenados ~= 150 reales.
     TURN_90_CORRECTION = 1.25
     TURN_180_CORRECTION = 1.25
+    RIGHT_TURN_REDUCTION = 0.90
     RIGHT_TURN_LINE_SEARCH_SPEED = 50
     RIGHT_TURN_LINE_SEARCH_DISTANCE = 90
 
@@ -287,6 +288,9 @@ class Navigator:
                 corrected_delta = delta * self.TURN_180_CORRECTION
             else:
                 corrected_delta = delta
+
+            if delta > 0:
+                corrected_delta *= self.RIGHT_TURN_REDUCTION
 
             self.robot.turn(corrected_delta)
 
