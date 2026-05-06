@@ -133,7 +133,8 @@ class Navigator:
     # En pruebas: 90 ordenados ~= 60 reales, 180 ordenados ~= 150 reales.
     TURN_90_CORRECTION = 1.50
     TURN_180_CORRECTION = 1.50
-    BLACK_EXIT_RIGHT_BIAS = 25
+    RIGHT_TURN_LINE_SEARCH_SPEED = 50
+    RIGHT_TURN_LINE_SEARCH_DISTANCE = 90
 
     def _compute_greenness(self, r, g, b):
         """Calcula la puntuación de verdosidad a partir del RGB."""
@@ -159,6 +160,24 @@ class Navigator:
 
         self.robot.reset_odometry()
 
+        if self.last_turn_delta > 0:
+            found_line = False
+            self.robot.drive(self.RIGHT_TURN_LINE_SEARCH_SPEED, 0)
+            while abs(self.robot.get_distance()) < self.RIGHT_TURN_LINE_SEARCH_DISTANCE:
+                r, g, b = self.robot.read_rgb()
+                if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
+                    found_line = True
+                    break
+                wait(10)
+
+            self.robot.stop()
+            if not found_line:
+                self.realign_to_line()
+
+            fase = 1
+            black_count = 0
+            last_deviation = 0
+
         while True:
             r, g, b = self.robot.read_rgb()
             greenness = self._compute_greenness(r, g, b)
@@ -183,8 +202,6 @@ class Navigator:
                 # ¡MAGIA! Si estamos pisando negro, anular el giro y el freno
                 # para cruzar la línea/cuadrado totalmente rectos
                 turn_rate = 0
-                if fase == 0 and self.last_turn_delta > 0:
-                    turn_rate = self.BLACK_EXIT_RIGHT_BIAS
                 last_deviation = 0
             else:
                 black_count = 0
