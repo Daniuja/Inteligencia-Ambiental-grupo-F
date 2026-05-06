@@ -109,6 +109,7 @@ class Navigator:
         self.current_pos = city_map.start_position  # (fila, col)
         self.current_heading = RIGHT  # Orientación inicial: mirando hacia la derecha
         self.current_heading_angle = 90  # 90 = derecha
+        self.last_turn_delta = 0
 
     # =========================================================================
     # SEGUIMIENTO DE LÍNEA VERDE (Categoría C)
@@ -132,8 +133,7 @@ class Navigator:
     # En pruebas: 90 ordenados ~= 60 reales, 180 ordenados ~= 150 reales.
     TURN_90_CORRECTION = 1.50
     TURN_180_CORRECTION = 1.50
-    RIGHT_TURN_EXTRA_CORRECTION = 1.15
-    LEFT_TURN_EXTRA_CORRECTION = 1.00
+    BLACK_EXIT_RIGHT_BIAS = 25
 
     def _compute_greenness(self, r, g, b):
         """Calcula la puntuación de verdosidad a partir del RGB."""
@@ -183,6 +183,8 @@ class Navigator:
                 # ¡MAGIA! Si estamos pisando negro, anular el giro y el freno
                 # para cruzar la línea/cuadrado totalmente rectos
                 turn_rate = 0
+                if fase == 0 and self.last_turn_delta > 0:
+                    turn_rate = self.BLACK_EXIT_RIGHT_BIAS
                 last_deviation = 0
             else:
                 black_count = 0
@@ -264,13 +266,9 @@ class Navigator:
             else:
                 corrected_delta = delta
 
-            if delta > 0:
-                corrected_delta *= self.RIGHT_TURN_EXTRA_CORRECTION
-            else:
-                corrected_delta *= self.LEFT_TURN_EXTRA_CORRECTION
-
             self.robot.turn(corrected_delta)
 
+        self.last_turn_delta = delta
         self.current_heading = target_direction
         self.current_heading_angle = target_angle
 
