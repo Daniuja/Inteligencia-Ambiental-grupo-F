@@ -131,7 +131,7 @@ class Navigator:
     # Compensacion de giro real del robot.
     # En pruebas: 90 ordenados ~= 60 reales, 180 ordenados ~= 150 reales.
     TURN_90_CORRECTION = 1.50
-    TURN_180_CORRECTION = 1.20
+    TURN_180_CORRECTION = 1.50
 
     def _compute_greenness(self, r, g, b):
         """Calcula la puntuación de verdosidad a partir del RGB."""
