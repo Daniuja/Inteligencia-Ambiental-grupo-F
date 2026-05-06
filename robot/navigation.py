@@ -132,6 +132,8 @@ class Navigator:
     # En pruebas: 90 ordenados ~= 60 reales, 180 ordenados ~= 150 reales.
     TURN_90_CORRECTION = 1.50
     TURN_180_CORRECTION = 1.50
+    RIGHT_TURN_EXTRA_CORRECTION = 1.15
+    LEFT_TURN_EXTRA_CORRECTION = 1.00
 
     def _compute_greenness(self, r, g, b):
         """Calcula la puntuación de verdosidad a partir del RGB."""
@@ -261,6 +263,11 @@ class Navigator:
                 corrected_delta = delta * self.TURN_180_CORRECTION
             else:
                 corrected_delta = delta
+
+            if delta > 0:
+                corrected_delta *= self.RIGHT_TURN_EXTRA_CORRECTION
+            else:
+                corrected_delta *= self.LEFT_TURN_EXTRA_CORRECTION
 
             self.robot.turn(corrected_delta)
 
