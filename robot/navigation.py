@@ -128,6 +128,11 @@ class Navigator:
     # REVISADO: Bajamos el umbral para evitar detectar el verde oscuro como negro
     BLACK_INTENSITY_THRESHOLD = 30  # Antes 45, muy alto
 
+    # Compensacion de giro real del robot.
+    # En pruebas: 90 ordenados ~= 60 reales, 180 ordenados ~= 150 reales.
+    TURN_90_CORRECTION = 1.50
+    TURN_180_CORRECTION = 1.20
+
     def _compute_greenness(self, r, g, b):
         """Calcula la puntuación de verdosidad a partir del RGB."""
         return g - max(r, b)
@@ -248,9 +253,16 @@ class Navigator:
             delta += 360
 
         if delta != 0:
-            # Giro exacto de 90/180 grados sin buscar línea.
-            # El avance recto de fase=0 sacará al robot del cuadrado negro.
-            self.robot.turn(delta)
+            # Giro compensado: el robot real se queda corto al girar sobre negro.
+            abs_delta = abs(delta)
+            if abs_delta == 90:
+                corrected_delta = delta * self.TURN_90_CORRECTION
+            elif abs_delta == 180:
+                corrected_delta = delta * self.TURN_180_CORRECTION
+            else:
+                corrected_delta = delta
+
+            self.robot.turn(corrected_delta)
 
         self.current_heading = target_direction
         self.current_heading_angle = target_angle
@@ -259,7 +271,7 @@ class Navigator:
         """
         Hace un barrido (sweep) izquierda-derecha para encontrar
         la línea verde y quedarse centrado. Búsqueda infinita y progresiva.
-        Avanza un poco hacia adelante si no la encuentra en su posición.
+        No avanza mientras busca: solo gira en abanico sobre su posición.
         """
         from pybricks.tools import wait, StopWatch
         timer = StopWatch()
@@ -271,8 +283,9 @@ class Navigator:
         if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
             return
 
-        # Patrón de búsqueda inicial: aumentado un 30% más por petición (1.3 seg * 45 deg/s = ~58 grados)
-        search_time = 1800  
+        # Patrón de búsqueda: abanico sobre el sitio, cada ciclo un poco más amplio.
+        search_time = 1800
+        max_search_time = 3000
         
         while True:
             # 1. Buscar hacia la derecha
@@ -305,20 +318,10 @@ class Navigator:
                     return
                 wait(10)
                 
-            # 4. ¡EL TRUCO MAESTRO! Si no la encuentra, avanzar un poquito en línea recta
-            # (Porque la línea puede empezar un poco más allá, oculta por el cuadrado negro)
-            self.robot.drive(50, 0)  # Velocidad 50 recta
-            timer.reset()
-            while timer.time() < 500:  # Avanza durante medio segundo (~2.5 cm)
-                r, g, b = self.robot.read_rgb()
-                if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
-                    self.robot.stop()
-                    return
-                wait(10)
+            # 4. Si no la encuentra, repetir el abanico sin avanzar.
             self.robot.stop()
-            
-            # ATENCIÓN: NO aumentamos el ángulo indefinidamente porque si gira 90 grados 
-            # pillará la línea verde de la que venía. Confiamos en el avance recto.
+            if search_time < max_search_time:
+                search_time += 300
 
     # =========================================================================
     # NAVEGACIÓN COMPLETA
