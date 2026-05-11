@@ -144,8 +144,10 @@ class Navigator:
     DERIVATIVE_GAIN = 2.0    # Ganancia derivativa (Kd) para frenar oscilaciones
     LINE_SPEED = 80         # Velocidad de seguimiento de línea verde (mm/s)
 
-    # REVISADO: Bajamos el umbral para evitar detectar el verde oscuro como negro
-    BLACK_INTENSITY_THRESHOLD = 30  # Antes 45, muy alto
+    # REVISADO: Restauramos el umbral a 45. El problema del verde oscuro ya se 
+    # soluciona con la condición (greenness < LINE_THRESHOLD) en is_black.
+    # Un umbral de 30 era muy bajo y causaba ruido en las líneas negras reales.
+    BLACK_INTENSITY_THRESHOLD = 45
 
     # Compensacion de giro real del robot.
     # En pruebas: 90 ordenados ~= 60 reales, 180 ordenados ~= 150 reales.
@@ -176,6 +178,7 @@ class Navigator:
         # 3 = Buscando el cuadrado negro central de destino
         fase = 0
         black_count = 0
+        green_count = 0
 
         self.robot.reset_odometry()
 
@@ -218,12 +221,14 @@ class Navigator:
             
             if is_black:
                 black_count += 1
+                green_count = 0
                 # ¡MAGIA! Si estamos pisando negro, anular el giro y el freno
                 # para cruzar la línea/cuadrado totalmente rectos
                 turn_rate = 0
                 last_deviation = 0
             else:
                 black_count = 0
+                green_count += 1
 
             # AHORA SÍ aplicamos la velocidad y el giro al robot
             self.robot.drive(current_speed, turn_rate)
@@ -245,8 +250,10 @@ class Navigator:
                     fase = 2
                     
             elif fase == 2:
-                # Cruzando frontera: ignorar negro hasta volver a ver verde
-                if not is_black:
+                # Cruzando frontera: ignorar negro hasta volver a ver verde FIRME
+                # Usamos green_count para evitar que un solo pico de ruido 
+                # (un falso 'no negro' estando sobre la línea negra) nos salte de fase.
+                if green_count >= 2:
                     fase = 3
                     
             elif fase == 3:
