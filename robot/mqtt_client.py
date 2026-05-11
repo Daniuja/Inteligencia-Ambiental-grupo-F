@@ -22,7 +22,7 @@ import utime
 # CONFIGURACIÓN MQTT
 # =============================================================================
 
-MQTT_BROKER = "192.168.0.103"
+MQTT_BROKER = "192.168.0.108"
 MQTT_PORT = 1883
 TEAM_LETTER = "F"  # Letra del equipo en Platea
 

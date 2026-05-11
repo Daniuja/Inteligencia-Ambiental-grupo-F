@@ -15,9 +15,9 @@
 
 const CONFIG = {
     // MQTT Broker
-    BROKER_HOST: '192.168.0.107',
+    BROKER_HOST: '192.168.0.108',
     BROKER_WS_PORT: 9001,
-    BROKER_URL: 'ws://192.168.0.107:9001',
+    BROKER_URL: 'ws://192.168.0.108:9001',
 
     // Team
     TEAM_LETTER: 'F',
