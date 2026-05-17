@@ -1,0 +1,465 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R] /Count 7 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Length 4383 >>
+stream
+BT /F2 20 Tf 48 800 Td (Memoria del proyecto: Robot de reparto autonomo) Tj ET
+BT /F1 10 Tf 48 763 Td (Asignatura: Inteligencia Ambiental) Tj ET
+BT /F1 10 Tf 48 748 Td (Equipo: Grupo F) Tj ET
+BT /F1 10 Tf 48 733 Td (Curso: 2025/2026) Tj ET
+BT /F1 10 Tf 48 718 Td (Plataforma: LEGO Mindstorms EV3 con Pybricks/MicroPython, aplicacion web y MQTT) Tj ET
+BT /F2 15 Tf 48 693 Td (1. Introduccion) Tj ET
+BT /F1 10 Tf 48 666 Td (El proyecto consiste en el diseno, construccion y programacion de un robot autonomo de reparto) Tj ET
+BT /F1 10 Tf 48 654 Td (basado en LEGO Mindstorms EV3. El robot debe desplazarse por un mapa urbano formado por calles,) Tj ET
+BT /F1 10 Tf 48 642 Td (cruces y edificios, recoger paquetes en puntos concretos y entregarlos en otros puntos) Tj ET
+BT /F1 10 Tf 48 630 Td (indicados desde una aplicacion web.) Tj ET
+BT /F1 10 Tf 48 610 Td (El sistema completo combina tres partes principales: el robot fisico, una aplicacion web de) Tj ET
+BT /F1 10 Tf 48 598 Td (control y visualizacion, y una comunicacion mediante MQTT. El robot recibe el mapa, calcula) Tj ET
+BT /F1 10 Tf 48 586 Td (rutas entre puntos de recogida y entrega, sigue las lineas del circuito mediante el sensor de) Tj ET
+BT /F1 10 Tf 48 574 Td (color y publica su estado y odometria para que la interfaz pueda mostrar su posicion en tiempo) Tj ET
+BT /F1 10 Tf 48 562 Td (real.) Tj ET
+BT /F1 10 Tf 48 542 Td (Durante el desarrollo se ha trabajado especialmente en la navegacion real sobre el tablero, ya) Tj ET
+BT /F1 10 Tf 48 530 Td (que el comportamiento del robot depende de factores fisicos como la posicion del sensor de) Tj ET
+BT /F1 10 Tf 48 518 Td (color, el rozamiento de las ruedas, la precision de los giros, el peso de la pala y las) Tj ET
+BT /F1 10 Tf 48 506 Td (diferencias entre girar a izquierda o derecha.) Tj ET
+BT /F2 15 Tf 48 481 Td (2. Objetivos) Tj ET
+BT /F1 10 Tf 48 454 Td (El objetivo principal es construir un sistema de reparto autonomo capaz de recibir pedidos,) Tj ET
+BT /F1 10 Tf 48 442 Td (planificar una ruta y desplazarse por el mapa hasta completar la recogida y la entrega de un) Tj ET
+BT /F1 10 Tf 48 430 Td (paquete.) Tj ET
+BT /F1 10 Tf 48 410 Td (Objetivos especificos:) Tj ET
+BT /F1 10 Tf 48 390 Td (- Interpretar el mapa de la ciudad recibido como una cadena codificada.) Tj ET
+BT /F1 10 Tf 48 378 Td (- Representar el mapa como un grafo de casillas conectadas.) Tj ET
+BT /F1 10 Tf 48 366 Td (- Calcular rutas validas entre dos puntos mediante busqueda en anchura.) Tj ET
+BT /F1 10 Tf 48 354 Td (- Controlar el movimiento del robot EV3 usando motores diferenciales.) Tj ET
+BT /F1 10 Tf 48 342 Td (- Detectar y seguir la linea verde del circuito mediante sensor RGB.) Tj ET
+BT /F1 10 Tf 48 330 Td (- Detectar cuadrados negros para identificar centros de casilla e intersecciones.) Tj ET
+BT /F1 10 Tf 48 318 Td (- Gestionar los giros de 90 y 180 grados teniendo en cuenta la calibracion real del robot.) Tj ET
+BT /F1 10 Tf 48 306 Td (- Permitir el envio de pedidos desde una aplicacion web.) Tj ET
+BT /F1 10 Tf 48 294 Td (- Comunicar robot e interfaz mediante MQTT.) Tj ET
+BT /F1 10 Tf 48 282 Td (- Publicar odometria y estado del robot durante la ejecucion.) Tj ET
+BT /F1 10 Tf 48 270 Td (- Documentar el despliegue para que el sistema pueda ser probado por el profesor.) Tj ET
+BT /F2 15 Tf 48 248 Td (3. Requisitos) Tj ET
+BT /F2 12 Tf 48 221 Td (3.1 Requisitos funcionales) Tj ET
+BT /F1 10 Tf 48 199 Td (- El robot debe recibir o cargar un mapa de la ciudad.) Tj ET
+BT /F1 10 Tf 48 187 Td (- La aplicacion web debe mostrar el mapa y permitir seleccionar puntos de recogida y entrega.) Tj ET
+BT /F1 10 Tf 48 175 Td (- El robot debe recibir pedidos mediante MQTT.) Tj ET
+BT /F1 10 Tf 48 163 Td (- El robot debe calcular la ruta mas corta entre su posicion actual y el destino.) Tj ET
+BT /F1 10 Tf 48 151 Td (- El robot debe navegar bloque a bloque hasta completar cada pedido.) Tj ET
+BT /F1 10 Tf 48 139 Td (- El robot debe recoger el paquete bajando la pala.) Tj ET
+BT /F1 10 Tf 48 127 Td (- El robot debe entregar el paquete subiendo la pala.) Tj ET
+BT /F1 10 Tf 48 115 Td (- El robot debe publicar su estado: esperando, navegando, recogiendo, entregando, completado o) Tj ET
+BT /F1 10 Tf 48 103 Td (error.) Tj ET
+BT /F1 10 Tf 48 91 Td (- El robot debe publicar odometria de forma periodica.) Tj ET
+BT /F2 12 Tf 48 74 Td (3.2 Requisitos no funcionales) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 4237 >>
+stream
+BT /F1 10 Tf 48 800 Td (- El sistema debe poder ejecutarse en el EV3 con MicroPython/Pybricks.) Tj ET
+BT /F1 10 Tf 48 788 Td (- La comunicacion debe ser ligera y compatible con la red local.) Tj ET
+BT /F1 10 Tf 48 776 Td (- La interfaz debe ser usable desde un navegador sin instalacion compleja.) Tj ET
+BT /F1 10 Tf 48 764 Td (- El codigo debe estar dividido en modulos para facilitar mantenimiento y pruebas.) Tj ET
+BT /F1 10 Tf 48 752 Td (- La navegacion debe ser tolerante a pequenas desviaciones fisicas del robot.) Tj ET
+BT /F1 10 Tf 48 740 Td (- La configuracion de IP del broker debe poder actualizarse facilmente.) Tj ET
+BT /F2 12 Tf 48 723 Td (3.3 Restricciones) Tj ET
+BT /F1 10 Tf 48 701 Td (- El robot utiliza un unico sensor de color, situado delante y a la izquierda del centro del) Tj ET
+BT /F1 10 Tf 48 689 Td (robot.) Tj ET
+BT /F1 10 Tf 48 677 Td (- Los giros no son perfectamente simetricos entre izquierda y derecha.) Tj ET
+BT /F1 10 Tf 48 665 Td (- El tablero contiene zonas con varias lineas cercanas, por lo que una recalibracion excesiva) Tj ET
+BT /F1 10 Tf 48 653 Td (puede hacer que el robot detecte una linea incorrecta.) Tj ET
+BT /F1 10 Tf 48 641 Td (- La deteccion de negro y verde depende de las condiciones de luz y de la calibracion del) Tj ET
+BT /F1 10 Tf 48 629 Td (sensor.) Tj ET
+BT /F2 15 Tf 48 607 Td (4. Arquitectura) Tj ET
+BT /F1 10 Tf 48 580 Td (El sistema se organiza en tres capas:) Tj ET
+BT /F1 10 Tf 48 560 Td (1. Robot EV3: ejecuta el control fisico, la planificacion de rutas, la navegacion y la) Tj ET
+BT /F1 10 Tf 48 548 Td (comunicacion MQTT.) Tj ET
+BT /F1 10 Tf 48 536 Td (2. Broker MQTT: actua como intermediario entre la aplicacion web y el robot.) Tj ET
+BT /F1 10 Tf 48 524 Td (3. Aplicacion web: muestra el mapa, permite enviar pedidos y visualiza el estado del robot.) Tj ET
+BT /F1 10 Tf 48 507 Td (Arquitectura general:) Tj ET
+BT /F3 8 Tf 48 487 Td (+----------------------+) Tj ET
+BT /F3 8 Tf 48 477 Td (|    Aplicacion web    |) Tj ET
+BT /F3 8 Tf 48 467 Td (| index.html + JS      |) Tj ET
+BT /F3 8 Tf 48 457 Td (| - mapa               |) Tj ET
+BT /F3 8 Tf 48 447 Td (| - pedidos            |) Tj ET
+BT /F3 8 Tf 48 437 Td (| - odometria          |) Tj ET
+BT /F3 8 Tf 48 427 Td (+----------+-----------+) Tj ET
+BT /F3 8 Tf 48 417 Td (|) Tj ET
+BT /F3 8 Tf 48 407 Td (| MQTT WebSocket) Tj ET
+BT /F3 8 Tf 48 397 Td (|) Tj ET
+BT /F3 8 Tf 48 387 Td (+----------v-----------+) Tj ET
+BT /F3 8 Tf 48 377 Td (|    Broker MQTT       |) Tj ET
+BT /F3 8 Tf 48 367 Td (|    Mosquitto         |) Tj ET
+BT /F3 8 Tf 48 357 Td (+----------+-----------+) Tj ET
+BT /F3 8 Tf 48 347 Td (|) Tj ET
+BT /F3 8 Tf 48 337 Td (| MQTT TCP) Tj ET
+BT /F3 8 Tf 48 327 Td (|) Tj ET
+BT /F3 8 Tf 48 317 Td (+----------v-----------+) Tj ET
+BT /F3 8 Tf 48 307 Td (|      Robot EV3       |) Tj ET
+BT /F3 8 Tf 48 297 Td (| Pybricks/MicroPython |) Tj ET
+BT /F3 8 Tf 48 287 Td (| - navegacion         |) Tj ET
+BT /F3 8 Tf 48 277 Td (| - sensores           |) Tj ET
+BT /F3 8 Tf 48 267 Td (| - motores            |) Tj ET
+BT /F3 8 Tf 48 257 Td (+----------------------+) Tj ET
+BT /F2 12 Tf 48 239 Td (4.1 Modulos del robot) Tj ET
+BT /F1 10 Tf 48 217 Td (- robot/main.py: punto de entrada. Inicializa hardware, MQTT, mapa y bucle principal.) Tj ET
+BT /F1 10 Tf 48 205 Td (- robot/hardware.py: abstraccion de motores, sensores, pala, pantalla, sonido y odometria.) Tj ET
+BT /F1 10 Tf 48 193 Td (- robot/map_parser.py: convierte la cadena del mapa en una matriz y un grafo de conexiones.) Tj ET
+BT /F1 10 Tf 48 181 Td (- robot/navigation.py: calcula rutas, gestiona orientacion, giros y seguimiento de linea.) Tj ET
+BT /F1 10 Tf 48 169 Td (- robot/mqtt_client.py: implementa el cliente MQTT del robot.) Tj ET
+BT /F2 12 Tf 48 152 Td (4.2 Modulos de la aplicacion web) Tj ET
+BT /F1 10 Tf 48 130 Td (- webapp/index.html: estructura de la interfaz.) Tj ET
+BT /F1 10 Tf 48 118 Td (- webapp/styles.css: estilos visuales.) Tj ET
+BT /F1 10 Tf 48 106 Td (- webapp/app.js: conexion MQTT, pedidos, estado y odometria.) Tj ET
+BT /F1 10 Tf 48 94 Td (- webapp/map_renderer.js: renderizado del mapa en canvas.) Tj ET
+BT /F1 10 Tf 48 82 Td (- webapp/images/: imagenes de los bloques del mapa.) Tj ET
+BT /F2 12 Tf 48 65 Td (4.3 Topics MQTT) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 4027 >>
+stream
+BT /F3 8 Tf 48 800 Td (Topic | Direccion | Uso) Tj ET
+BT /F3 8 Tf 48 790 Td (map | Web/broker -> robot | Envio del mapa codificado) Tj ET
+BT /F3 8 Tf 48 780 Td (Equipo F/pedidos | Web -> robot | Pedidos con recogida y entrega) Tj ET
+BT /F3 8 Tf 48 770 Td (Equipo F/posicion_inicial | Web -> robot | Configuracion de posicion inicial) Tj ET
+BT /F3 8 Tf 48 760 Td (Equipo F/odometria | Robot -> web | Posicion, orientacion y movimiento) Tj ET
+BT /F3 8 Tf 48 750 Td (Equipo F/estado | Robot -> web | Estado actual del pedido) Tj ET
+BT /F2 15 Tf 48 730 Td (5. Planificacion) Tj ET
+BT /F1 10 Tf 48 703 Td (El trabajo se organizo por fases:) Tj ET
+BT /F3 8 Tf 48 683 Td (Fase | Trabajo realizado | Resultado) Tj ET
+BT /F3 8 Tf 48 673 Td (1 | Analisis del enunciado y mapa | Identificacion de bloques, calles y puntos de pedido) Tj ET
+BT /F3 8 Tf 48 663 Td (2 | Construccion del robot | Chasis con dos motores, pala y sensor de color) Tj ET
+BT /F3 8 Tf 48 653 Td (3 | Comunicacion MQTT | Envio de mapa, pedidos, estado y odometria) Tj ET
+BT /F3 8 Tf 48 643 Td (4 | Aplicacion web | Interfaz para mapa, pedidos y seguimiento) Tj ET
+BT /F3 8 Tf 48 633 Td (5 | Planificacion de rutas | Parser de mapa y BFS sobre grafo) Tj ET
+BT /F3 8 Tf 48 623 Td (6 | Navegacion fisica | Seguimiento de linea verde y deteccion de cuadrados negros) Tj ET
+BT /F3 8 Tf 48 613 Td (7 | Calibracion | Ajuste de giros, umbrales de color y salida de intersecciones) Tj ET
+BT /F3 8 Tf 48 603 Td (8 | Pruebas finales | Validacion de entregas completas sobre el tablero) Tj ET
+BT /F1 10 Tf 48 588 Td (La fase mas iterativa fue la calibracion. Aunque el algoritmo de ruta funcionaba de forma) Tj ET
+BT /F1 10 Tf 48 576 Td (logica, el comportamiento real del robot exigio ajustar parametros de giro, avance y busqueda) Tj ET
+BT /F1 10 Tf 48 564 Td (de linea.) Tj ET
+BT /F2 15 Tf 48 539 Td (6. Diseno) Tj ET
+BT /F2 12 Tf 48 512 Td (6.1 Representacion del mapa) Tj ET
+BT /F1 10 Tf 48 490 Td (El mapa se recibe como una cadena de caracteres donde cada par de digitos representa un bloque.) Tj ET
+BT /F1 10 Tf 48 478 Td (El mapa tiene 7 filas y 5 columnas. Cada ID indica que tipo de bloque es y que direcciones) Tj ET
+BT /F1 10 Tf 48 466 Td (permite.) Tj ET
+BT /F1 10 Tf 48 446 Td (Ejemplos:) Tj ET
+BT /F3 8 Tf 48 426 Td (ID | Tipo) Tj ET
+BT /F3 8 Tf 48 416 Td (00 | Edificio) Tj ET
+BT /F3 8 Tf 48 406 Td (01 | Calle izquierda-derecha) Tj ET
+BT /F3 8 Tf 48 396 Td (02 | Calle arriba-abajo) Tj ET
+BT /F3 8 Tf 48 386 Td (03 | Curva arriba-derecha) Tj ET
+BT /F3 8 Tf 48 376 Td (11 | Cruce con las cuatro direcciones) Tj ET
+BT /F1 10 Tf 48 361 Td (El modulo map_parser.py convierte estos IDs en una matriz y despues construye un grafo de) Tj ET
+BT /F1 10 Tf 48 349 Td (adyacencia. Solo se conecta una casilla con otra si ambas tienen direcciones compatibles.) Tj ET
+BT /F2 12 Tf 48 329 Td (6.2 Calculo de rutas) Tj ET
+BT /F1 10 Tf 48 307 Td (Para calcular la ruta entre dos puntos se utiliza busqueda en anchura \(BFS\). Esta tecnica es) Tj ET
+BT /F1 10 Tf 48 295 Td (adecuada porque todas las conexiones entre casillas tienen el mismo coste, por lo que BFS) Tj ET
+BT /F1 10 Tf 48 283 Td (encuentra la ruta con menor numero de pasos.) Tj ET
+BT /F1 10 Tf 48 263 Td (Flujo del calculo de ruta:) Tj ET
+BT /F3 8 Tf 48 243 Td (Inicio) Tj ET
+BT /F3 8 Tf 48 233 Td (|) Tj ET
+BT /F3 8 Tf 48 223 Td (v) Tj ET
+BT /F3 8 Tf 48 213 Td (Leer posicion actual y destino) Tj ET
+BT /F3 8 Tf 48 203 Td (|) Tj ET
+BT /F3 8 Tf 48 193 Td (v) Tj ET
+BT /F3 8 Tf 48 183 Td (Ejecutar BFS sobre el grafo del mapa) Tj ET
+BT /F3 8 Tf 48 173 Td (|) Tj ET
+BT /F3 8 Tf 48 163 Td (v) Tj ET
+BT /F3 8 Tf 48 153 Td (Hay ruta-) Tj ET
+BT /F3 8 Tf 48 143 Td (|--- No ---> Mostrar error) Tj ET
+BT /F3 8 Tf 48 133 Td (|) Tj ET
+BT /F3 8 Tf 48 123 Td (Si) Tj ET
+BT /F3 8 Tf 48 113 Td (|) Tj ET
+BT /F3 8 Tf 48 103 Td (v) Tj ET
+BT /F3 8 Tf 48 93 Td (Convertir posiciones a direcciones) Tj ET
+BT /F3 8 Tf 48 83 Td (|) Tj ET
+BT /F3 8 Tf 48 73 Td (v) Tj ET
+BT /F3 8 Tf 48 63 Td (Ejecutar movimiento bloque a bloque) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Length 4056 >>
+stream
+BT /F2 12 Tf 48 800 Td (6.3 Navegacion bloque a bloque) Tj ET
+BT /F1 10 Tf 48 778 Td (Cada tramo de la ruta se ejecuta en dos pasos:) Tj ET
+BT /F1 10 Tf 48 758 Td (1. Girar hasta la direccion necesaria.) Tj ET
+BT /F1 10 Tf 48 746 Td (2. Avanzar hasta el siguiente bloque siguiendo la linea verde.) Tj ET
+BT /F1 10 Tf 48 729 Td (El robot mantiene una orientacion logica \(up, right, down, left\) y la convierte a angulos) Tj ET
+BT /F1 10 Tf 48 717 Td (absolutos: 0, 90, 180 y 270 grados.) Tj ET
+BT /F2 12 Tf 48 697 Td (6.4 Seguimiento de linea verde) Tj ET
+BT /F1 10 Tf 48 675 Td (El sensor de color lee valores RGB. Para detectar la linea verde se calcula:) Tj ET
+BT /F3 8 Tf 48 655 Td (verdosidad = G - max\(R, B\)) Tj ET
+BT /F1 10 Tf 48 637 Td (Si la verdosidad supera el umbral configurado, se considera que el robot esta sobre la linea) Tj ET
+BT /F1 10 Tf 48 625 Td (verde. El seguimiento usa un controlador proporcional-derivativo:) Tj ET
+BT /F3 8 Tf 48 605 Td (error = LINE_THRESHOLD - verdosidad) Tj ET
+BT /F3 8 Tf 48 595 Td (giro = Kp * error + Kd * \(error - error_anterior\)) Tj ET
+BT /F1 10 Tf 48 577 Td (Esto permite que el robot corrija su trayectoria mientras avanza.) Tj ET
+BT /F2 12 Tf 48 557 Td (6.5 Deteccion de cuadrados negros) Tj ET
+BT /F1 10 Tf 48 535 Td (Los cuadrados negros indican centros de casilla e intersecciones. El robot los detecta) Tj ET
+BT /F1 10 Tf 48 523 Td (combinando dos condiciones:) Tj ET
+BT /F3 8 Tf 48 503 Td (intensidad = R + G + B) Tj ET
+BT /F3 8 Tf 48 493 Td (es_negro = intensidad < BLACK_INTENSITY_THRESHOLD) Tj ET
+BT /F3 8 Tf 48 483 Td (y verdosidad < LINE_THRESHOLD) Tj ET
+BT /F1 10 Tf 48 465 Td (La segunda condicion evita confundir una linea verde oscura con negro.) Tj ET
+BT /F2 12 Tf 48 445 Td (6.6 Maquina de estados del avance) Tj ET
+BT /F1 10 Tf 48 423 Td (El seguimiento de linea utiliza una maquina de estados para distinguir entre salir del centro) Tj ET
+BT /F1 10 Tf 48 411 Td (actual, cruzar la frontera y llegar al centro siguiente.) Tj ET
+BT /F3 8 Tf 48 391 Td (Fase 0: salir del cuadrado negro actual) Tj ET
+BT /F3 8 Tf 48 381 Td (|) Tj ET
+BT /F3 8 Tf 48 371 Td (v) Tj ET
+BT /F3 8 Tf 48 361 Td (Fase 1: seguir linea verde hasta detectar frontera negra) Tj ET
+BT /F3 8 Tf 48 351 Td (|) Tj ET
+BT /F3 8 Tf 48 341 Td (v) Tj ET
+BT /F3 8 Tf 48 331 Td (Fase 2: cruzar frontera negra hasta volver a verde) Tj ET
+BT /F3 8 Tf 48 321 Td (|) Tj ET
+BT /F3 8 Tf 48 311 Td (v) Tj ET
+BT /F3 8 Tf 48 301 Td (Fase 3: buscar el cuadrado negro central del siguiente bloque) Tj ET
+BT /F3 8 Tf 48 291 Td (|) Tj ET
+BT /F3 8 Tf 48 281 Td (v) Tj ET
+BT /F3 8 Tf 48 271 Td (Parar y centrar ruedas) Tj ET
+BT /F2 12 Tf 48 253 Td (6.7 Tratamiento especial de giros) Tj ET
+BT /F1 10 Tf 48 231 Td (El robot real no gira exactamente lo mismo que el valor pedido por software. Por ello se han) Tj ET
+BT /F1 10 Tf 48 219 Td (calibrado factores de correccion:) Tj ET
+BT /F3 8 Tf 48 199 Td (Parametro | Valor actual | Funcion) Tj ET
+BT /F3 8 Tf 48 189 Td (TURN_90_CORRECTION | 1.60 | Compensa giros de 90 grados) Tj ET
+BT /F3 8 Tf 48 179 Td (TURN_180_CORRECTION | 1.25 | Compensa giros de 180 grados) Tj ET
+BT /F3 8 Tf 48 169 Td (RIGHT_TURN_REDUCTION | 0.60 | Reduce giros a derecha para no pasarse) Tj ET
+BT /F3 8 Tf 48 159 Td (RIGHT_TURN_LINE_SEARCH_DISTANCE | 90 mm | Avance corto tras girar a la derecha) Tj ET
+BT /F1 10 Tf 48 144 Td (Tambien se decidio que los giros de 180 grados se hagan siempre hacia la izquierda, porque en) Tj ET
+BT /F1 10 Tf 48 132 Td (las pruebas resultaban mas fiables que los giros de 180 hacia la derecha.) Tj ET
+BT /F1 10 Tf 48 112 Td (La posicion real del sensor condiciona esta parte: el sensor esta situado delante y a la) Tj ET
+BT /F1 10 Tf 48 100 Td (izquierda del centro del robot. Por este motivo, tras ciertos giros a la derecha el sensor) Tj ET
+BT /F1 10 Tf 48 88 Td (podia quedar sobre el negro o detectar una linea incorrecta. La solucion final fue reducir el) Tj ET
+BT /F1 10 Tf 48 76 Td (giro derecho y avanzar un poco buscando verde antes de activar la busqueda en abanico.) Tj ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 12 0 R >>
+endobj
+14 0 obj
+<< /Length 3331 >>
+stream
+BT /F2 12 Tf 48 800 Td (6.8 Busqueda de linea) Tj ET
+BT /F1 10 Tf 48 778 Td (Si el robot sale del negro y no encuentra la linea verde, realiza una busqueda en abanico. Esta) Tj ET
+BT /F1 10 Tf 48 766 Td (busqueda gira sobre el sitio, sin avanzar, para evitar que el robot invada lineas cercanas y) Tj ET
+BT /F1 10 Tf 48 754 Td (detecte una calle incorrecta.) Tj ET
+BT /F3 8 Tf 48 734 Td (No hay verde) Tj ET
+BT /F3 8 Tf 48 724 Td (|) Tj ET
+BT /F3 8 Tf 48 714 Td (v) Tj ET
+BT /F3 8 Tf 48 704 Td (Girar a derecha buscando verde) Tj ET
+BT /F3 8 Tf 48 694 Td (|) Tj ET
+BT /F3 8 Tf 48 684 Td (v) Tj ET
+BT /F3 8 Tf 48 674 Td (Girar a izquierda cruzando el centro) Tj ET
+BT /F3 8 Tf 48 664 Td (|) Tj ET
+BT /F3 8 Tf 48 654 Td (v) Tj ET
+BT /F3 8 Tf 48 644 Td (Volver al centro) Tj ET
+BT /F3 8 Tf 48 634 Td (|) Tj ET
+BT /F3 8 Tf 48 624 Td (v) Tj ET
+BT /F3 8 Tf 48 614 Td (Repetir con abanico algo mayor) Tj ET
+BT /F2 15 Tf 48 591 Td (7. Implementacion) Tj ET
+BT /F1 10 Tf 48 564 Td (El proyecto esta implementado principalmente en Python/MicroPython para el robot y JavaScript) Tj ET
+BT /F1 10 Tf 48 552 Td (para la interfaz web.) Tj ET
+BT /F2 12 Tf 48 532 Td (7.1 Codigo del robot) Tj ET
+BT /F1 10 Tf 48 510 Td (El archivo main.py realiza la inicializacion general:) Tj ET
+BT /F1 10 Tf 48 490 Td (- Inicializa motores, sensores y pantalla.) Tj ET
+BT /F1 10 Tf 48 478 Td (- Conecta con el broker MQTT.) Tj ET
+BT /F1 10 Tf 48 466 Td (- Espera el mapa.) Tj ET
+BT /F1 10 Tf 48 454 Td (- Crea el navegador.) Tj ET
+BT /F1 10 Tf 48 442 Td (- Entra en un bucle de espera de pedidos.) Tj ET
+BT /F1 10 Tf 48 430 Td (- Ejecuta la ruta de recogida y despues la ruta de entrega.) Tj ET
+BT /F1 10 Tf 48 413 Td (El archivo hardware.py encapsula el acceso fisico al EV3:) Tj ET
+BT /F1 10 Tf 48 393 Td (- Motores izquierdo y derecho.) Tj ET
+BT /F1 10 Tf 48 381 Td (- Motor de pala.) Tj ET
+BT /F1 10 Tf 48 369 Td (- Sensor de color.) Tj ET
+BT /F1 10 Tf 48 357 Td (- Sensor giroscopico.) Tj ET
+BT /F1 10 Tf 48 345 Td (- DriveBase para movimiento diferencial.) Tj ET
+BT /F1 10 Tf 48 333 Td (- Pantalla, luz y sonido.) Tj ET
+BT /F1 10 Tf 48 316 Td (El archivo navigation.py contiene la parte principal de autonomia:) Tj ET
+BT /F1 10 Tf 48 296 Td (- Busqueda de rutas con BFS.) Tj ET
+BT /F1 10 Tf 48 284 Td (- Conversion de rutas a direcciones.) Tj ET
+BT /F1 10 Tf 48 272 Td (- Gestion de orientacion.) Tj ET
+BT /F1 10 Tf 48 260 Td (- Giro calibrado.) Tj ET
+BT /F1 10 Tf 48 248 Td (- Seguimiento de linea.) Tj ET
+BT /F1 10 Tf 48 236 Td (- Busqueda de linea en abanico.) Tj ET
+BT /F1 10 Tf 48 224 Td (- Recogida y entrega de paquete.) Tj ET
+BT /F2 12 Tf 48 207 Td (7.2 Codigo de la interfaz web) Tj ET
+BT /F1 10 Tf 48 185 Td (La aplicacion web permite:) Tj ET
+BT /F1 10 Tf 48 165 Td (- Conectarse al broker MQTT mediante WebSockets.) Tj ET
+BT /F1 10 Tf 48 153 Td (- Recibir y representar el mapa.) Tj ET
+BT /F1 10 Tf 48 141 Td (- Configurar la posicion inicial.) Tj ET
+BT /F1 10 Tf 48 129 Td (- Crear pedidos de recogida y entrega.) Tj ET
+BT /F1 10 Tf 48 117 Td (- Mostrar la cola de pedidos.) Tj ET
+BT /F1 10 Tf 48 105 Td (- Visualizar odometria y estado del robot.) Tj ET
+BT /F1 10 Tf 48 88 Td (El mapa se dibuja en un elemento canvas. Las imagenes de bloques permiten que la representacion) Tj ET
+BT /F1 10 Tf 48 76 Td (sea mas parecida al tablero real.) Tj ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 14 0 R >>
+endobj
+16 0 obj
+<< /Length 3005 >>
+stream
+BT /F2 12 Tf 48 800 Td (7.3 Comunicacion MQTT) Tj ET
+BT /F1 10 Tf 48 778 Td (La comunicacion se basa en mensajes JSON simples. Un pedido tiene esta estructura:) Tj ET
+BT /F3 8 Tf 48 758 Td ({) Tj ET
+BT /F3 8 Tf 48 748 Td ("pickup": [2, 1],) Tj ET
+BT /F3 8 Tf 48 738 Td ("delivery": [5, 0]) Tj ET
+BT /F3 8 Tf 48 728 Td (}) Tj ET
+BT /F1 10 Tf 48 710 Td (Un mensaje de odometria incluye informacion como:) Tj ET
+BT /F3 8 Tf 48 690 Td ({) Tj ET
+BT /F3 8 Tf 48 680 Td ("row": 4,) Tj ET
+BT /F3 8 Tf 48 670 Td ("col": 0,) Tj ET
+BT /F3 8 Tf 48 660 Td ("heading": "up",) Tj ET
+BT /F3 8 Tf 48 650 Td ("heading_angle": 0,) Tj ET
+BT /F3 8 Tf 48 640 Td ("distance": 125,) Tj ET
+BT /F3 8 Tf 48 630 Td ("speed": 80,) Tj ET
+BT /F3 8 Tf 48 620 Td ("angle": 0,) Tj ET
+BT /F3 8 Tf 48 610 Td ("turn_rate": 5) Tj ET
+BT /F3 8 Tf 48 600 Td (}) Tj ET
+BT /F2 15 Tf 48 577 Td (8. Despliegue) Tj ET
+BT /F2 12 Tf 48 550 Td (8.1 Requisitos de software) Tj ET
+BT /F1 10 Tf 48 528 Td (- Visual Studio Code.) Tj ET
+BT /F1 10 Tf 48 516 Td (- Extension LEGO MINDSTORMS EV3 MicroPython.) Tj ET
+BT /F1 10 Tf 48 504 Td (- Extension ev3dev-browser.) Tj ET
+BT /F1 10 Tf 48 492 Td (- Mosquitto MQTT Broker.) Tj ET
+BT /F1 10 Tf 48 480 Td (- Navegador web moderno.) Tj ET
+BT /F1 10 Tf 48 468 Td (- Python en el ordenador para ejecutar set_ip.py.) Tj ET
+BT /F2 12 Tf 48 451 Td (8.2 Configuracion de red) Tj ET
+BT /F1 10 Tf 48 429 Td (El ordenador y el robot deben estar conectados a la misma red Wi-Fi. La IP del ordenador se) Tj ET
+BT /F1 10 Tf 48 417 Td (configura en los archivos del robot y de la web mediante:) Tj ET
+BT /F3 8 Tf 48 397 Td (python set_ip.py <IP_DEL_ORDENADOR>) Tj ET
+BT /F1 10 Tf 48 379 Td (Este script actualiza:) Tj ET
+BT /F1 10 Tf 48 359 Td (- webapp/app.js) Tj ET
+BT /F1 10 Tf 48 347 Td (- robot/mqtt_client.py) Tj ET
+BT /F2 12 Tf 48 330 Td (8.3 Arranque del broker MQTT) Tj ET
+BT /F1 10 Tf 48 308 Td (Desde la raiz del proyecto:) Tj ET
+BT /F3 8 Tf 48 288 Td (& "C:\\Program Files\\mosquitto\\mosquitto.exe" -v -c mosquitto.conf) Tj ET
+BT /F1 10 Tf 48 270 Td (La terminal debe permanecer abierta mientras se prueba el sistema.) Tj ET
+BT /F2 12 Tf 48 250 Td (8.4 Ejecucion del robot) Tj ET
+BT /F1 10 Tf 48 228 Td (1. Conectar el EV3 al ordenador mediante USB o Wi-Fi.) Tj ET
+BT /F1 10 Tf 48 216 Td (2. Abrir el proyecto en Visual Studio Code.) Tj ET
+BT /F1 10 Tf 48 204 Td (3. Subir la carpeta robot/ al EV3.) Tj ET
+BT /F1 10 Tf 48 192 Td (4. Ejecutar main.py desde el entorno EV3.) Tj ET
+BT /F1 10 Tf 48 180 Td (5. Esperar a que el robot muestre que esta listo o esperando mapa.) Tj ET
+BT /F2 12 Tf 48 163 Td (8.5 Ejecucion de la web) Tj ET
+BT /F1 10 Tf 48 141 Td (1. Abrir webapp/index.html en el navegador.) Tj ET
+BT /F1 10 Tf 48 129 Td (2. Comprobar que aparece conexion al broker.) Tj ET
+BT /F1 10 Tf 48 117 Td (3. Esperar o reenviar el mapa.) Tj ET
+BT /F1 10 Tf 48 105 Td (4. Seleccionar punto de recogida y entrega.) Tj ET
+BT /F1 10 Tf 48 93 Td (5. Enviar el pedido.) Tj ET
+BT /F2 15 Tf 48 71 Td (9. Resultados) Tj ET
+endstream
+endobj
+17 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 16 0 R >>
+endobj
+18 0 obj
+<< /Length 4189 >>
+stream
+BT /F1 10 Tf 48 800 Td (El sistema final consigue completar rutas de recogida y entrega usando el mapa, la) Tj ET
+BT /F1 10 Tf 48 788 Td (planificacion BFS y el seguimiento de linea verde.) Tj ET
+BT /F2 12 Tf 48 768 Td (9.1 Parametros finales de navegacion) Tj ET
+BT /F3 8 Tf 48 746 Td (Parametro | Valor | Observacion) Tj ET
+BT /F3 8 Tf 48 736 Td (LINE_THRESHOLD | 20 | Umbral de verdosidad) Tj ET
+BT /F3 8 Tf 48 726 Td (BLACK_INTENSITY_THRESHOLD | 45 | Umbral de negro) Tj ET
+BT /F3 8 Tf 48 716 Td (LINE_SPEED | 80 mm/s | Velocidad de seguimiento) Tj ET
+BT /F3 8 Tf 48 706 Td (PROPORTIONAL_GAIN | 3.5 | Ganancia proporcional) Tj ET
+BT /F3 8 Tf 48 696 Td (DERIVATIVE_GAIN | 2.0 | Ganancia derivativa) Tj ET
+BT /F3 8 Tf 48 686 Td (TURN_90_CORRECTION | 1.60 | Correccion de giro de 90) Tj ET
+BT /F3 8 Tf 48 676 Td (TURN_180_CORRECTION | 1.25 | Correccion de giro de 180) Tj ET
+BT /F3 8 Tf 48 666 Td (RIGHT_TURN_REDUCTION | 0.60 | Ajuste especifico de giro derecho) Tj ET
+BT /F3 8 Tf 48 656 Td (RIGHT_TURN_LINE_SEARCH_DISTANCE | 90 mm | Avance tras giro derecho) Tj ET
+BT /F2 12 Tf 48 641 Td (9.2 Pruebas realizadas) Tj ET
+BT /F3 8 Tf 48 619 Td (Prueba | Resultado | Comentario) Tj ET
+BT /F3 8 Tf 48 609 Td (Recepcion de mapa por MQTT | Correcta | El robot recibe la cadena y la parsea) Tj ET
+BT /F3 8 Tf 48 599 Td (Envio de pedido desde web | Correcto | El pedido llega al topic del equipo) Tj ET
+BT /F3 8 Tf 48 589 Td (Calculo de ruta | Correcto | BFS encuentra rutas validas) Tj ET
+BT /F3 8 Tf 48 579 Td (Seguimiento de linea verde | Correcto tras calibracion | Requiere umbrales ajustados) Tj ET
+BT /F3 8 Tf 48 569 Td (Deteccion de cuadrados negros | Correcta | Se evita confundir verde oscuro con negro) Tj ET
+BT /F3 8 Tf 48 559 Td (Giro a derecha | Correcto tras ajuste | Se redujo el giro y se anadio busqueda corta de linea) Tj ET
+BT /F3 8 Tf 48 549 Td (Giro de 180 grados | Correcto | Se fuerza hacia la izquierda) Tj ET
+BT /F3 8 Tf 48 539 Td (Publicacion de odometria | Correcta | La web actualiza posicion y estado) Tj ET
+BT /F2 12 Tf 48 524 Td (9.3 Imagenes y videos) Tj ET
+BT /F1 10 Tf 48 502 Td (Incluir aqui evidencias de funcionamiento:) Tj ET
+BT /F1 10 Tf 48 482 Td (- Imagen del robot montado: imagenes/robot.jpg) Tj ET
+BT /F1 10 Tf 48 470 Td (- Imagen del tablero o ciudad: ciudad.png) Tj ET
+BT /F1 10 Tf 48 458 Td (- Captura de la aplicacion web funcionando: imagenes/webapp.png) Tj ET
+BT /F1 10 Tf 48 446 Td (- Video de recogida y entrega: enlace pendiente) Tj ET
+BT /F1 10 Tf 48 434 Td (- Video de seguimiento de linea y giro en intersecciones: enlace pendiente) Tj ET
+BT /F2 15 Tf 48 412 Td (10. Mejoras futuras) Tj ET
+BT /F1 10 Tf 48 385 Td (- Anadir una segunda lectura de color o un segundo sensor para detectar mejor la posicion) Tj ET
+BT /F1 10 Tf 48 373 Td (lateral de la linea.) Tj ET
+BT /F1 10 Tf 48 361 Td (- Usar el giroscopio de forma mas intensiva para cerrar el control de giro.) Tj ET
+BT /F1 10 Tf 48 349 Td (- Guardar estadisticas automaticas de cada pedido: tiempo total, distancia recorrida, numero de) Tj ET
+BT /F1 10 Tf 48 337 Td (realineaciones y errores.) Tj ET
+BT /F1 10 Tf 48 325 Td (- Mejorar la interfaz para mostrar la ruta planificada antes de ejecutarla.) Tj ET
+BT /F1 10 Tf 48 313 Td (- Implementar replanificacion si el robot falla al llegar a un bloque.) Tj ET
+BT /F1 10 Tf 48 301 Td (- Crear un modo de calibracion guiado desde la web para ajustar umbrales sin modificar codigo.) Tj ET
+BT /F1 10 Tf 48 289 Td (- Reducir la dependencia de parametros empiricos mediante control mas robusto.) Tj ET
+BT /F1 10 Tf 48 277 Td (- Anadir confirmacion visual de recogida y entrega mediante sensores o deteccion de carga.) Tj ET
+BT /F2 15 Tf 48 255 Td (11. Referencias) Tj ET
+BT /F1 10 Tf 48 228 Td (- Documentacion de Pybricks para EV3: https://docs.pybricks.com/) Tj ET
+BT /F1 10 Tf 48 216 Td (- Documentacion de LEGO Mindstorms EV3.) Tj ET
+BT /F1 10 Tf 48 204 Td (- Documentacion de MQTT: https://mqtt.org/) Tj ET
+BT /F1 10 Tf 48 192 Td (- Eclipse Mosquitto: https://mosquitto.org/) Tj ET
+BT /F1 10 Tf 48 180 Td (- Material de la asignatura Inteligencia Ambiental.) Tj ET
+BT /F1 10 Tf 48 168 Td (- Codigo fuente del proyecto del Grupo F.) Tj ET
+endstream
+endobj
+19 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 18 0 R >>
+endobj
+xref
+0 20
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000162 00000 n 
+0000000259 00000 n 
+0000000361 00000 n 
+0000000456 00000 n 
+0000004891 00000 n 
+0000005037 00000 n 
+0000009326 00000 n 
+0000009472 00000 n 
+0000013552 00000 n 
+0000013700 00000 n 
+0000017809 00000 n 
+0000017957 00000 n 
+0000021341 00000 n 
+0000021489 00000 n 
+0000024547 00000 n 
+0000024695 00000 n 
+0000028937 00000 n 
+trailer
+<< /Size 20 /Root 1 0 R >>
+startxref
+29085
+%%EOF

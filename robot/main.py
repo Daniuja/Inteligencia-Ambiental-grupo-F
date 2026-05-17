@@ -26,7 +26,7 @@ from mqtt_client import RobotMQTTClient
 # CONFIGURACIÓN
 # =============================================================================
 
-# Usar seguimiento de línea (True = Categoría C, False = Categoría A/B)
+
 USE_LINE_FOLLOWING = True  # Categoría C — seguir trazado de calles
 
 # Tiempo máximo de espera para el mapa (ms)
@@ -34,11 +34,6 @@ MAP_TIMEOUT_MS = 120000
 
 
 def main():
-    """Función principal del robot de reparto."""
-
-    # =========================================================================
-    # PASO 1: Inicializar hardware
-    # =========================================================================
     print("=" * 40)
     print("Robot de Reparto - Equipo F")
     print("=" * 40)
@@ -166,12 +161,6 @@ def main():
 
 
 def apply_initial_pose(robot, navigator, mqtt, city_map, pose):
-    """
-    Aplica una posicion inicial recibida desde la interfaz grafica.
-
-    Returns:
-        bool: True si se aplico una pose nueva, False si no habia pose valida.
-    """
     if not pose:
         return False
 
@@ -196,17 +185,6 @@ def apply_initial_pose(robot, navigator, mqtt, city_map, pose):
 
 
 def execute_order(robot, navigator, mqtt, order, connected, odometry_timer):
-    """
-    Ejecuta un pedido completo: ir a recoger y luego entregar.
-
-    Args:
-        robot: RobotHardware
-        navigator: Navigator
-        mqtt: RobotMQTTClient
-        order: Dict con 'pickup' [row, col] y 'delivery' [row, col]
-        connected: Bool si MQTT está conectado
-        odometry_timer: StopWatch para odometría
-    """
     pickup = tuple(order.get('pickup', [0, 0]))
     delivery = tuple(order.get('delivery', [0, 0]))
 
@@ -292,14 +270,6 @@ def execute_order(robot, navigator, mqtt, order, connected, odometry_timer):
 
 
 def load_default_map(city_map):
-    """Carga el mapa de ejemplo de las primeras pruebas."""
-    # Mapa de la Figura 8 del enunciado
-    # Grid 5 filas x 7 columnas
-    # Fila 0: 02 02 00 01 05 03 07
-    # Fila 1: 02 00 00 00 02 02 08
-    # Fila 2: 08 01 01 00 10 00 02
-    # Fila 3: 02 00 00 00 02 00 02
-    # Fila 4: 04 01 07 01 09 01 06
     default_map = "02020001050307020000000202080101010000100002000000020002040107010901060107010701"
 
     # Nota: Esta cadena es una estimación del mapa de ejemplo.
@@ -311,10 +281,6 @@ def load_default_map(city_map):
 
 
 def test_manual(robot, navigator):
-    """
-    Modo de prueba manual sin MQTT.
-    Ejecuta una secuencia de prueba básica.
-    """
     robot.display_text("Prueba manual")
     print("Prueba: avanzar 1 bloque, girar 90, avanzar 1 bloque")
 

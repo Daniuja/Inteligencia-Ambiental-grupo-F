@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Aplicación cliente para el robot de reparto EV3 - Equipo F - Inteligencia Ambiental">
-    <title>🤖 Robot de Reparto — Equipo F</title>
+    <title>Robot de Reparto - Equipo F</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* --- Posición Inicial panel --- */
+        /* Panel de posicion inicial */
         .form-row {
             display: flex;
             gap: 0.75rem;
@@ -33,7 +33,7 @@
         .form-group input[type="number"]:focus {
             border-color: #22d3ee;
         }
-        /* Remove number spinners for cleaner look */
+        /* Ajuste visual de los controles numericos */
         .form-group input[type="number"]::-webkit-inner-spin-button,
         .form-group input[type="number"]::-webkit-outer-spin-button {
             opacity: 0.4;
@@ -68,7 +68,7 @@
     <header id="app-header">
         <div class="header-left">
             <div class="logo">
-                <span class="logo-icon">🤖</span>
+                <span class="logo-icon">EV3</span>
                 <div>
                     <h1>Robot de Reparto</h1>
                     <span class="team-badge">Equipo F</span>
@@ -81,7 +81,7 @@
                 <span id="status-text">Desconectado</span>
             </div>
             <div class="battery-indicator" id="battery-indicator">
-                <span class="battery-icon">🔋</span>
+                <span class="battery-icon">Bateria</span>
                 <span id="battery-level">--</span>
             </div>
         </div>
@@ -92,7 +92,7 @@
         <!-- Left Panel: Map -->
         <section class="panel map-panel" id="map-panel">
             <div class="panel-header">
-                <h2>🗺️ Mapa de la Ciudad</h2>
+                <h2>Mapa de la Ciudad</h2>
                 <div class="map-info">
                     <span id="map-dimensions" class="info-chip">7×5</span>
                     <span id="map-status" class="info-chip loading">Sin mapa</span>
@@ -114,7 +114,7 @@
             <!-- Robot Status -->
             <div class="card status-card" id="robot-status-card">
                 <div class="card-header">
-                    <h3>📡 Estado del Robot</h3>
+                    <h3>Estado del Robot</h3>
                 </div>
                 <div class="status-grid">
                     <div class="status-item">
@@ -139,7 +139,7 @@
             <!-- Odometry Panel -->
             <div class="card odometry-card" id="odometry-card">
                 <div class="card-header">
-                    <h3>📏 Odometría</h3>
+                    <h3>Odometría</h3>
                     <span class="refresh-rate" id="odometry-rate">-- Hz</span>
                 </div>
                 <div class="odometry-grid">
@@ -165,7 +165,7 @@
             <!-- Initial Position -->
             <div class="card init-card" id="init-card">
                 <div class="card-header">
-                    <h3>📌 Posición Inicial</h3>
+                    <h3>Posición Inicial</h3>
                 </div>
                 <form id="init-position-form">
                     <div class="form-row">
@@ -179,7 +179,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="init-heading">🧭 Orientación</label>
+                        <label for="init-heading">Orientación</label>
                         <select id="init-heading">
                             <option value="up">↑ Arriba (0°)</option>
                             <option value="right">→ Derecha (90°)</option>
@@ -188,7 +188,7 @@
                         </select>
                     </div>
                     <button type="submit" class="btn-secondary" id="apply-init-pos">
-                        <span class="btn-icon">📌</span>
+                        <span class="btn-icon">OK</span>
                         Aplicar Posición
                     </button>
                 </form>
@@ -197,23 +197,23 @@
             <!-- Order Form -->
             <div class="card order-card" id="order-card">
                 <div class="card-header">
-                    <h3>📦 Nuevo Pedido</h3>
+                    <h3>Nuevo Pedido</h3>
                 </div>
                 <form id="order-form">
                     <div class="form-group">
-                        <label for="pickup-select">📍 Punto de Recogida</label>
+                        <label for="pickup-select">Punto de Recogida</label>
                         <select id="pickup-select" required>
                             <option value="">Seleccionar punto...</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="delivery-select">🏠 Punto de Entrega</label>
+                        <label for="delivery-select">Punto de Entrega</label>
                         <select id="delivery-select" required>
                             <option value="">Seleccionar punto...</option>
                         </select>
                     </div>
                     <button type="submit" class="btn-primary" id="submit-order">
-                        <span class="btn-icon">🚀</span>
+                        <span class="btn-icon">Enviar</span>
                         Lanzar Pedido
                     </button>
                 </form>
@@ -222,12 +222,12 @@
             <!-- Order Queue -->
             <div class="card queue-card" id="queue-card">
                 <div class="card-header">
-                    <h3>📋 Cola de Pedidos</h3>
+                    <h3>Cola de Pedidos</h3>
                     <span class="order-count" id="order-count">0</span>
                 </div>
                 <div class="order-list" id="order-list">
                     <div class="empty-queue" id="empty-queue">
-                        <span class="empty-icon">📭</span>
+                        <span class="empty-icon">Sin pedidos</span>
                         <p>No hay pedidos en cola</p>
                     </div>
                 </div>

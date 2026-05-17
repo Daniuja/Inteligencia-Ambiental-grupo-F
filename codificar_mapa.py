@@ -54,15 +54,6 @@ def pixel_is(pixel: np.ndarray, ref: np.ndarray) -> bool:
 # ─────────────────────────────────────────────
 
 def analyze_cell(cell: np.ndarray) -> int:
-    """
-    Recibe un recorte (H×W×3) y devuelve el ID (0-11).
-
-    Estrategia:
-      1. Si hay suficiente rojo → edificio (00).
-      2. Si no, detecta presencia de color de calle (azul o verde)
-         en las cuatro bandas de borde (arriba, abajo, izquierda, derecha).
-      3. Combina las conexiones detectadas para determinar el tipo.
-    """
     h, w, _ = cell.shape
 
     # ── 1. Edificio ──────────────────────────────────────────
@@ -76,7 +67,6 @@ def analyze_cell(cell: np.ndarray) -> int:
     band = max(4, h // 8)   # ancho de la franja de borde
 
     def has_road(region: np.ndarray) -> bool:
-        """True si la región contiene píxeles azules o verdes."""
         blue  = np.sum(np.linalg.norm(region.astype(float) - COLOR_BLUE,  axis=2) < THRESH)
         green = np.sum(np.linalg.norm(region.astype(float) - COLOR_GREEN, axis=2) < THRESH)
         return (blue + green) > 5

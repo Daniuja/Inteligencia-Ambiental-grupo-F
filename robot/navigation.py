@@ -1,12 +1,4 @@
-"""
-navigation.py — Pathfinding y control de navegación del robot.
 
-Implementa:
-- Algoritmo BFS/A* para encontrar la ruta óptima entre dos puntos del mapa
-- Control de navegación bloque a bloque
-- Seguimiento de línea con controlador PID proporcional (Categoría C)
-- Gestión de la orientación del robot
-"""
 
 from map_parser import (
     CityMap, UP, DOWN, LEFT, RIGHT,
@@ -29,24 +21,9 @@ class PathFinder:
     """Algoritmo de búsqueda de rutas sobre el mapa de la ciudad."""
 
     def __init__(self, city_map):
-        """
-        Args:
-            city_map: Instancia de CityMap con el mapa parseado.
-        """
         self.city_map = city_map
 
     def find_path(self, start, goal):
-        """
-        Encuentra la ruta más corta entre dos posiciones usando BFS.
-
-        Args:
-            start: Tupla (fila, columna) de inicio
-            goal: Tupla (fila, columna) de destino
-
-        Returns:
-            list: Lista de tuplas (fila, columna) que forman la ruta,
-                  incluyendo inicio y destino. Lista vacía si no hay ruta.
-        """
         if start == goal:
             return [start]
 
@@ -75,15 +52,6 @@ class PathFinder:
         return []  # No se encontró ruta
 
     def get_directions(self, path):
-        """
-        Convierte una ruta (lista de posiciones) en una lista de direcciones.
-
-        Args:
-            path: Lista de tuplas (fila, columna)
-
-        Returns:
-            list: Lista de direcciones (UP, DOWN, LEFT, RIGHT)
-        """
         directions = []
         for i in range(len(path) - 1):
             direction = self.city_map.get_direction_to(path[i], path[i + 1])
@@ -93,14 +61,8 @@ class PathFinder:
 
 
 class Navigator:
-    """Controla la navegación física del robot sobre el mapa."""
 
     def __init__(self, robot_hw, city_map):
-        """
-        Args:
-            robot_hw: Instancia de RobotHardware
-            city_map: Instancia de CityMap
-        """
         self.robot = robot_hw
         self.city_map = city_map
         self.pathfinder = PathFinder(city_map)
@@ -112,13 +74,6 @@ class Navigator:
         self.last_turn_delta = 0
 
     def set_pose(self, row, col, heading):
-        """
-        Actualiza la posicion logica del robot antes de calcular nuevas rutas.
-
-        La interfaz grafica mueve fisicamente el punto de salida. Este metodo
-        sincroniza ese cambio con el planificador para que el siguiente pedido
-        arranque desde la casilla y orientacion seleccionadas.
-        """
         if heading not in DIRECTION_TO_ANGLE:
             heading = RIGHT
 
@@ -129,13 +84,8 @@ class Navigator:
         self.robot.reset_odometry()
         self.robot.reset_gyro(self.current_heading_angle)
 
-    # =========================================================================
-    # SEGUIMIENTO DE LÍNEA VERDE (Categoría C)
-    # =========================================================================
 
-    # Constantes para el controlador PID de seguimiento de línea verde.
-    # La "verdosidad" (greenness) se calcula como: G - max(R, B) del sensor RGB.
-    # Sobre la línea verde el valor es alto; fuera (blanco) es cercano a 0.
+
     GREEN_ON_LINE = 35      # Verdosidad típica sobre la línea verde (CALIBRAR)
     GREEN_OFF_LINE = 5      # Verdosidad típica fuera de la línea (CALIBRAR)
     # Umbral = (ON + OFF) / 2 aprox. (CALIBRAR)
@@ -144,9 +94,8 @@ class Navigator:
     DERIVATIVE_GAIN = 2.0    # Ganancia derivativa (Kd) para frenar oscilaciones
     LINE_SPEED = 80         # Velocidad de seguimiento de línea verde (mm/s)
 
-    # REVISADO: Restauramos el umbral a 45. El problema del verde oscuro ya se 
-    # soluciona con la condición (greenness < LINE_THRESHOLD) en is_black.
-    # Un umbral de 30 era muy bajo y causaba ruido en las líneas negras reales.
+    # Umbral de intensidad para detectar negro. La condicion de verdosidad en
+    # is_black evita confundir una linea verde oscura con una zona negra.
     BLACK_INTENSITY_THRESHOLD = 45
 
     # Compensacion de giro real del robot.
@@ -158,14 +107,9 @@ class Navigator:
     RIGHT_TURN_LINE_SEARCH_DISTANCE = 90
 
     def _compute_greenness(self, r, g, b):
-        """Calcula la puntuación de verdosidad a partir del RGB."""
         return g - max(r, b)
 
     def follow_line_to_next_block(self):
-        """
-        Sigue la línea verde usando controlador PD y una máquina de estados
-        para cruzar la línea de frontera negra antes de parar en el centro negro.
-        """
         from pybricks.tools import wait, StopWatch
 
         SPEED = self.LINE_SPEED
@@ -222,21 +166,21 @@ class Navigator:
             if is_black:
                 black_count += 1
                 green_count = 0
-                # ¡MAGIA! Si estamos pisando negro, anular el giro y el freno
-                # para cruzar la línea/cuadrado totalmente rectos
+                # Al detectar negro se avanza recto para cruzar fronteras y
+                # cuadrados sin que el controlador de linea corrija el giro.
                 turn_rate = 0
                 last_deviation = 0
             else:
                 black_count = 0
                 green_count += 1
 
-            # AHORA SÍ aplicamos la velocidad y el giro al robot
+            # Aplicar la velocidad y el giro calculados.
             self.robot.drive(current_speed, turn_rate)
 
             if fase == 0:
                 # Saliendo: ignorar negro hasta ver verde continuo
                 if not is_black:
-                    # Acabamos de salir del negro. ¿Estamos en verde o blanco?
+                    # Al salir del negro se comprueba si el sensor esta sobre verde.
                     if greenness < self.LINE_THRESHOLD:
                         # Hemos salido al blanco. El robot está torcido (p.ej tras recoger un paquete)
                         self.robot.stop()
@@ -279,14 +223,9 @@ class Navigator:
     # =========================================================================
 
     def move_one_block(self):
-        """Avanza exactamente un bloque usando odometría."""
         self.robot.move_straight(BLOCK_SIZE_MM)
 
     def turn_to_direction(self, target_direction):
-        """
-        Gira el robot para que mire en la dirección objetivo.
-        El giro se hace exacto usando la odometría (giroscopio/motores).
-        """
         target_angle = DIRECTION_TO_ANGLE[target_direction]
         current_angle = DIRECTION_TO_ANGLE[self.current_heading]
 
@@ -324,17 +263,12 @@ class Navigator:
         self.current_heading_angle = target_angle
 
     def realign_to_line(self):
-        """
-        Hace un barrido (sweep) izquierda-derecha para encontrar
-        la línea verde y quedarse centrado. Búsqueda infinita y progresiva.
-        No avanza mientras busca: solo gira en abanico sobre su posición.
-        """
         from pybricks.tools import wait, StopWatch
         timer = StopWatch()
         
         sweep_speed = 45  # Ajustado a 45 deg/s para no saltarse la línea
         
-        # 1. ¿Estamos ya en la línea?
+        # 1. Comprobar si el sensor ya esta sobre la linea.
         r, g, b = self.robot.read_rgb()
         if self._compute_greenness(r, g, b) >= self.LINE_THRESHOLD:
             return
@@ -384,19 +318,6 @@ class Navigator:
     # =========================================================================
 
     def navigate_to(self, goal, use_line_following=False, on_block_callback=None):
-        """
-        Navega desde la posición actual hasta el objetivo.
-
-        Args:
-            goal: Tupla (fila, columna) del destino
-            use_line_following: Si True, usa seguimiento de línea (Cat. C)
-            on_block_callback: Función a llamar al llegar a cada bloque.
-                               Recibe (fila, col) como argumentos.
-
-        Returns:
-            bool: True si se llegó al destino, False si falló
-        """
-        # Calcular ruta
         path = self.pathfinder.find_path(self.current_pos, goal)
 
         if not path:
@@ -434,7 +355,6 @@ class Navigator:
         return True
 
     def pickup_package(self):
-        """Recoge un paquete en la posición actual."""
         self.robot.display_text("Recogiendo...")
         self.robot.pala_bajar()
         from pybricks.tools import wait
@@ -442,7 +362,6 @@ class Navigator:
         self.robot.beep(800, 300)
 
     def deliver_package(self):
-        """Entrega un paquete en la posición actual."""
         self.robot.display_text("Entregando...")
         self.robot.pala_subir()
         from pybricks.tools import wait
@@ -452,12 +371,6 @@ class Navigator:
         self.robot.beep(1000, 300)
 
     def get_state(self):
-        """
-        Obtiene el estado actual del navegador.
-
-        Returns:
-            dict: Estado con posición, orientación y odometría
-        """
         odo = self.robot.get_odometry()
         return {
             'row': self.current_pos[0],

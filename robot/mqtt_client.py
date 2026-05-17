@@ -38,19 +38,12 @@ ODOMETRY_INTERVAL_MS = 500  # 2 Hz (supera el mínimo de 1 Hz)
 
 
 class MQTTMessage:
-    """Almacena un mensaje MQTT recibido."""
     def __init__(self, topic, payload):
         self.topic = topic
         self.payload = payload
 
 
 class SimpleMQTT:
-    """
-    Cliente MQTT simplificado para MicroPython en EV3.
-
-    Implementa el protocolo MQTT 3.1.1 a nivel de socket para
-    no depender de librerías externas.
-    """
 
     def __init__(self, client_id, broker, port=1883):
         self.client_id = client_id
@@ -61,7 +54,6 @@ class SimpleMQTT:
         self.connected = False
 
     def connect(self):
-        """Conecta al broker MQTT."""
         try:
             self.sock = usocket.socket()
             addr = usocket.getaddrinfo(self.broker, self.port)[0][-1]
@@ -107,13 +99,6 @@ class SimpleMQTT:
             return False
 
     def subscribe(self, topic, callback):
-        """
-        Se suscribe a un topic MQTT.
-
-        Args:
-            topic: String del topic
-            callback: Función que recibe (topic, payload) como strings
-        """
         self.callbacks[topic] = callback
 
         topic_bytes = topic.encode('utf-8')
@@ -135,13 +120,6 @@ class SimpleMQTT:
             print("MQTT Subscribe error: {}".format(e))
 
     def publish(self, topic, payload):
-        """
-        Publica un mensaje en un topic MQTT.
-
-        Args:
-            topic: String del topic
-            payload: String del payload
-        """
         if not self.connected:
             return
 
@@ -171,10 +149,6 @@ class SimpleMQTT:
             print("MQTT Publish error: {}".format(e))
 
     def check_messages(self):
-        """
-        Comprueba si hay mensajes pendientes y los procesa.
-        No bloquea (non-blocking).
-        """
         if not self.sock:
             return
 
@@ -186,7 +160,6 @@ class SimpleMQTT:
             pass  # No hay datos disponibles (non-blocking)
 
     def _process_packet(self, data):
-        """Procesa un paquete MQTT recibido."""
         if len(data) < 2:
             return
 
@@ -219,7 +192,6 @@ class SimpleMQTT:
                         self.callbacks[topic](topic, payload)
 
     def disconnect(self):
-        """Desconecta del broker MQTT."""
         if self.sock:
             try:
                 packet = bytearray([0xE0, 0x00])  # DISCONNECT
@@ -231,14 +203,6 @@ class SimpleMQTT:
 
 
 class RobotMQTTClient:
-    """
-    Cliente MQTT de alto nivel para el robot de reparto.
-
-    Gestiona la comunicación con el broker:
-    - Recibe el mapa
-    - Recibe pedidos
-    - Publica odometría y estado
-    """
 
     def __init__(self, client_id="ev3_robot_F"):
         self.mqtt = SimpleMQTT(client_id, MQTT_BROKER, MQTT_PORT)
@@ -249,11 +213,9 @@ class RobotMQTTClient:
         self.last_odometry_time = 0
 
     def connect(self):
-        """Conecta al broker MQTT."""
         return self.mqtt.connect()
 
     def subscribe_map(self):
-        """Se suscribe al topic del mapa."""
         def on_map(topic, payload):
             self.map_data = payload
             print("Mapa recibido: {} bytes".format(len(payload)))
@@ -261,7 +223,6 @@ class RobotMQTTClient:
         self.mqtt.subscribe(TOPIC_MAP, on_map)
 
     def subscribe_orders(self):
-        """Se suscribe al topic de pedidos."""
         def on_order(topic, payload):
             try:
                 order = ujson.loads(payload)
@@ -273,7 +234,6 @@ class RobotMQTTClient:
         self.mqtt.subscribe(TOPIC_ORDERS, on_order)
 
     def subscribe_initial_pose(self):
-        """Se suscribe al topic de posicion inicial configurada desde la web."""
         def on_initial_pose(topic, payload):
             try:
                 pose = ujson.loads(payload)
@@ -296,15 +256,6 @@ class RobotMQTTClient:
         self.mqtt.subscribe(TOPIC_INITIAL_POSE, on_initial_pose)
 
     def wait_for_map(self, timeout_ms=120000):
-        """
-        Espera a recibir el mapa (se retransmite cada 60s).
-
-        Args:
-            timeout_ms: Tiempo máximo de espera en ms
-
-        Returns:
-            str: Cadena del mapa, o None si timeout
-        """
         start = utime.ticks_ms()
         while self.map_data is None:
             self.mqtt.check_messages()
@@ -314,24 +265,12 @@ class RobotMQTTClient:
         return self.map_data
 
     def get_next_order(self):
-        """
-        Obtiene el siguiente pedido pendiente.
-
-        Returns:
-            dict: Pedido con 'pickup' y 'delivery', o None
-        """
         self.mqtt.check_messages()
         if self.pending_orders:
             return self.pending_orders.pop(0)
         return None
 
     def pop_initial_pose(self):
-        """
-        Obtiene la ultima posicion inicial recibida y la marca como aplicada.
-
-        Returns:
-            dict: Pose con row, col, heading y heading_angle, o None.
-        """
         self.mqtt.check_messages()
         if self.initial_pose_dirty and self.initial_pose is not None:
             self.initial_pose_dirty = False
@@ -339,12 +278,6 @@ class RobotMQTTClient:
         return None
 
     def publish_odometry(self, nav_state):
-        """
-        Publica la odometría del robot.
-
-        Args:
-            nav_state: Dict con el estado del navegador
-        """
         now = utime.ticks_ms()
         if utime.ticks_diff(now, self.last_odometry_time) >= ODOMETRY_INTERVAL_MS:
             payload = ujson.dumps(nav_state)
@@ -352,22 +285,13 @@ class RobotMQTTClient:
             self.last_odometry_time = now
 
     def publish_status(self, status, order_info=None):
-        """
-        Publica el estado actual del robot.
-
-        Args:
-            status: String de estado (e.g., 'idle', 'navigating', 'picking', 'delivering')
-            order_info: Dict con info adicional del pedido
-        """
         data = {'status': status}
         if order_info:
             data['order'] = order_info
         self.mqtt.publish(TOPIC_STATUS, ujson.dumps(data))
 
     def check_messages(self):
-        """Comprueba y procesa mensajes pendientes."""
         self.mqtt.check_messages()
 
     def disconnect(self):
-        """Desconecta del broker."""
         self.mqtt.disconnect()

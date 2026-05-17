@@ -283,10 +283,6 @@ const MapRenderer = (() => {
         }
     }
 
-    // Removed: drawBuilding() - now using image bloques-00.png
-
-    // Removed: drawStreetBlock() - now using image bloques-01.png through bloques-11.png
-
     function drawPickupPoints() {
         for (const [row, col] of pickupPoints) {
             const x = padding + col * cellW + cellW / 2;

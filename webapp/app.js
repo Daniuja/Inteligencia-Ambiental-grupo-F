@@ -69,13 +69,13 @@ const state = {
 
 // Status labels in Spanish
 const STATUS_LABELS = {
-    'idle': '⏳ Esperando',
-    'navigating_pickup': '🚗 Hacia recogida',
-    'navigating_delivery': '🚗 Hacia entrega',
-    'picking_up': '📦 Recogiendo',
-    'delivering': '📤 Entregando',
-    'completed': '✅ Completado',
-    'error': '❌ Error',
+    'idle': 'Esperando',
+    'navigating_pickup': 'Hacia recogida',
+    'navigating_delivery': 'Hacia entrega',
+    'picking_up': 'Recogiendo',
+    'delivering': 'Entregando',
+    'completed': 'Completado',
+    'error': 'Error',
 };
 
 // Heading labels
@@ -94,7 +94,7 @@ function connectMQTT() {
     updateConnectionStatus(false, 'Conectando...');
 
     if (CONFIG.SIMULATION_MODE) {
-        console.log('🎮 Modo Simulación activo');
+        console.log('Modo simulacion activo');
         updateConnectionStatus(false, 'Simulación');
         startSimulation();
         return;
@@ -109,7 +109,7 @@ function connectMQTT() {
         });
 
         client.on('connect', () => {
-            console.log('✅ Conectado al broker MQTT');
+            console.log('Conectado al broker MQTT');
             state.connected = true;
             state.mqttClient = client;
             updateConnectionStatus(true, 'Conectado');
@@ -164,7 +164,7 @@ function handleMapMessage(payload) {
     if (state.mapString === payload) {
         return; // Evitar bucle infinito al recibir nuestro propio mensaje
     }
-    console.log('🗺️ Mapa recibido:', payload.substring(0, 30) + '...');
+    console.log('Mapa recibido:', payload.substring(0, 30) + '...');
     state.mapString = payload;
     state.mapLoaded = true;
 
@@ -175,7 +175,7 @@ function handleMapMessage(payload) {
     
     // Publicar automáticamente el mapa al robot
     if (state.mqttClient && state.connected) {
-        console.log('📤 Reenviando mapa al robot...');
+        console.log('Reenviando mapa al robot...');
         publishMapToRobot(payload);
     }
 }
@@ -193,8 +193,8 @@ function publishMapToRobot(mapString) {
 
     try {
         state.mqttClient.publish(CONFIG.TOPIC_MAP, mapString);
-        console.log('✅ Mapa publicado al robot');
-        showToast('Mapa enviado al robot ✅', 'success');
+        console.log('Mapa publicado al robot');
+        showToast('Mapa enviado al robot', 'success');
     } catch (err) {
         console.error('Error publishing map:', err);
         showToast('Error al enviar el mapa', 'error');
@@ -218,9 +218,9 @@ function publishInitialPose(showSuccess = true) {
 
     try {
         state.mqttClient.publish(CONFIG.TOPIC_INITIAL_POSE, payload);
-        console.log('📌 Posición inicial enviada:', payload);
+        console.log('Posicion inicial enviada:', payload);
         if (showSuccess) {
-            showToast('Posición inicial enviada al robot ✅', 'success');
+            showToast('Posición inicial enviada al robot', 'success');
         }
         return true;
     } catch (err) {
@@ -297,7 +297,7 @@ function submitOrder(pickup, delivery) {
 
     updateOrderQueueUI();
     showToast(`Pedido #${order.id} añadido`, 'info');
-    console.log('📦 Pedido enviado:', order);
+    console.log('Pedido enviado:', order);
 }
 
 function markCurrentOrderCompleted() {
@@ -312,7 +312,7 @@ function markCurrentOrderCompleted() {
         }
 
         updateOrderQueueUI();
-        showToast(`Pedido #${activeOrder.id} completado! ✅`, 'success');
+        showToast(`Pedido #${activeOrder.id} completado`, 'success');
     }
 }
 
@@ -405,7 +405,7 @@ function updateOrderQueueUI() {
             <div class="order-details">
                 <span class="order-label">Pedido #${order.id} — ${order.timestamp}</span>
                 <span class="order-points">
-                    📍 (${order.pickup[0]}, ${order.pickup[1]}) → 🏠 (${order.delivery[0]}, ${order.delivery[1]})
+                    (${order.pickup[0]}, ${order.pickup[1]}) -> (${order.delivery[0]}, ${order.delivery[1]})
                 </span>
             </div>
             <span class="order-status-badge ${order.status}">
@@ -471,7 +471,7 @@ function showToast(message, type = 'info') {
 // =============================================================================
 
 function startSimulation() {
-    console.log('🎮 Starting simulation...');
+    console.log('Starting simulation...');
     showToast('Modo simulación — conectar al broker para datos reales', 'info');
 
     // Load default map after a brief delay
@@ -613,7 +613,7 @@ function setupEventListeners() {
 // =============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🤖 Robot de Reparto — Equipo F');
+    console.log('Robot de Reparto - Equipo F');
     console.log('================================');
 
     // Initialize map renderer

@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Memoria Robot de Reparto - Grupo F</title>
+<style>
+@page { size: A4; margin: 18mm 16mm; }
+body { font-family: Arial, Helvetica, sans-serif; color: #172033; line-height: 1.45; font-size: 10.5pt; }
+h1 { font-size: 24pt; color: #0f3f5f; margin: 0 0 12px; page-break-after: avoid; }
+h2 { font-size: 16pt; color: #155b7e; border-bottom: 1px solid #c8d7e1; padding-bottom: 4px; margin-top: 22px; page-break-after: avoid; }
+h3 { font-size: 12.5pt; color: #1f4f66; margin-top: 16px; page-break-after: avoid; }
+h4 { font-size: 11pt; color: #2c596b; margin-top: 12px; page-break-after: avoid; }
+p { margin: 7px 0; }
+ul, ol { margin: 6px 0 10px 22px; padding: 0; }
+li { margin: 3px 0; }
+table { border-collapse: collapse; width: 100%; margin: 9px 0 14px; font-size: 9.2pt; page-break-inside: avoid; }
+th { background: #eaf3f7; color: #12394d; }
+th, td { border: 1px solid #b8c9d4; padding: 5px 7px; vertical-align: top; }
+pre { background: #f4f7f9; border: 1px solid #d5e0e6; border-radius: 4px; padding: 9px; white-space: pre-wrap; font-size: 8.7pt; page-break-inside: avoid; }
+code { font-family: Consolas, 'Courier New', monospace; color: #12394d; }
+strong { color: #102c3c; }
+</style>
+</head>
+<body>
+<h1>Memoria del proyecto: Robot de reparto autonomo</h1>
+<p><strong>Asignatura:</strong> Inteligencia Ambiental</p>
+<p><strong>Equipo:</strong> Grupo F</p>
+<p><strong>Curso:</strong> 2025/2026</p>
+<p><strong>Plataforma:</strong> LEGO Mindstorms EV3 con Pybricks/MicroPython, aplicacion web y MQTT</p>
+<h2>1. Introduccion</h2>
+<p>El proyecto consiste en el diseno, construccion y programacion de un robot autonomo de reparto basado en LEGO Mindstorms EV3. El robot debe desplazarse por un mapa urbano formado por calles, cruces y edificios, recoger paquetes en puntos concretos y entregarlos en otros puntos indicados desde una aplicacion web.</p>
+<p>El sistema completo combina tres partes principales: el robot fisico, una aplicacion web de control y visualizacion, y una comunicacion mediante MQTT. El robot recibe el mapa, calcula rutas entre puntos de recogida y entrega, sigue las lineas del circuito mediante el sensor de color y publica su estado y odometria para que la interfaz pueda mostrar su posicion en tiempo real.</p>
+<p>Durante el desarrollo se ha trabajado especialmente en la navegacion real sobre el tablero, ya que el comportamiento del robot depende de factores fisicos como la posicion del sensor de color, el rozamiento de las ruedas, la precision de los giros, el peso de la pala y las diferencias entre girar a izquierda o derecha.</p>
+<h2>2. Objetivos</h2>
+<p>El objetivo principal es construir un sistema de reparto autonomo capaz de recibir pedidos, planificar una ruta y desplazarse por el mapa hasta completar la recogida y la entrega de un paquete.</p>
+<p>Objetivos especificos:</p>
+<ul>
+<li>Interpretar el mapa de la ciudad recibido como una cadena codificada.</li>
+<li>Representar el mapa como un grafo de casillas conectadas.</li>
+<li>Calcular rutas validas entre dos puntos mediante busqueda en anchura.</li>
+<li>Controlar el movimiento del robot EV3 usando motores diferenciales.</li>
+<li>Detectar y seguir la linea verde del circuito mediante sensor RGB.</li>
+<li>Detectar cuadrados negros para identificar centros de casilla e intersecciones.</li>
+<li>Gestionar los giros de 90 y 180 grados teniendo en cuenta la calibracion real del robot.</li>
+<li>Permitir el envio de pedidos desde una aplicacion web.</li>
+<li>Comunicar robot e interfaz mediante MQTT.</li>
+<li>Publicar odometria y estado del robot durante la ejecucion.</li>
+<li>Documentar el despliegue para que el sistema pueda ser probado por el profesor.</li>
+</ul>
+<h2>3. Requisitos</h2>
+<h3>3.1 Requisitos funcionales</h3>
+<ul>
+<li>El robot debe recibir o cargar un mapa de la ciudad.</li>
+<li>La aplicacion web debe mostrar el mapa y permitir seleccionar puntos de recogida y entrega.</li>
+<li>El robot debe recibir pedidos mediante MQTT.</li>
+<li>El robot debe calcular la ruta mas corta entre su posicion actual y el destino.</li>
+<li>El robot debe navegar bloque a bloque hasta completar cada pedido.</li>
+<li>El robot debe recoger el paquete bajando la pala.</li>
+<li>El robot debe entregar el paquete subiendo la pala.</li>
+<li>El robot debe publicar su estado: esperando, navegando, recogiendo, entregando, completado o error.</li>
+<li>El robot debe publicar odometria de forma periodica.</li>
+</ul>
+<h3>3.2 Requisitos no funcionales</h3>
+<ul>
+<li>El sistema debe poder ejecutarse en el EV3 con MicroPython/Pybricks.</li>
+<li>La comunicacion debe ser ligera y compatible con la red local.</li>
+<li>La interfaz debe ser usable desde un navegador sin instalacion compleja.</li>
+<li>El codigo debe estar dividido en modulos para facilitar mantenimiento y pruebas.</li>
+<li>La navegacion debe ser tolerante a pequenas desviaciones fisicas del robot.</li>
+<li>La configuracion de IP del broker debe poder actualizarse facilmente.</li>
+</ul>
+<h3>3.3 Restricciones</h3>
+<ul>
+<li>El robot utiliza un unico sensor de color, situado delante y a la izquierda del centro del robot.</li>
+<li>Los giros no son perfectamente simetricos entre izquierda y derecha.</li>
+<li>El tablero contiene zonas con varias lineas cercanas, por lo que una recalibracion excesiva puede hacer que el robot detecte una linea incorrecta.</li>
+<li>La deteccion de negro y verde depende de las condiciones de luz y de la calibracion del sensor.</li>
+</ul>
+<h2>4. Arquitectura</h2>
+<p>El sistema se organiza en tres capas:</p>
+<ol>
+<li><strong>Robot EV3:</strong> ejecuta el control fisico, la planificacion de rutas, la navegacion y la comunicacion MQTT.</li>
+<li><strong>Broker MQTT:</strong> actua como intermediario entre la aplicacion web y el robot.</li>
+<li><strong>Aplicacion web:</strong> muestra el mapa, permite enviar pedidos y visualiza el estado del robot.</li>
+</ol>
+<p>Arquitectura general:</p>
+<pre><code>
+             +----------------------+
+             |    Aplicacion web    |
+             | index.html + JS      |
+             | - mapa               |
+             | - pedidos            |
+             | - odometria          |
+             +----------+-----------+
+                        |
+                        | MQTT WebSocket
+                        |
+             +----------v-----------+
+             |    Broker MQTT       |
+             |    Mosquitto         |
+             +----------+-----------+
+                        |
+                        | MQTT TCP
+                        |
+             +----------v-----------+
+             |      Robot EV3       |
+             | Pybricks/MicroPython |
+             | - navegacion         |
+             | - sensores           |
+             | - motores            |
+             +----------------------+
+</code></pre>
+<h3>4.1 Modulos del robot</h3>
+<ul>
+<li><code>robot/main.py</code>: punto de entrada. Inicializa hardware, MQTT, mapa y bucle principal.</li>
+<li><code>robot/hardware.py</code>: abstraccion de motores, sensores, pala, pantalla, sonido y odometria.</li>
+<li><code>robot/map_parser.py</code>: convierte la cadena del mapa en una matriz y un grafo de conexiones.</li>
+<li><code>robot/navigation.py</code>: calcula rutas, gestiona orientacion, giros y seguimiento de linea.</li>
+<li><code>robot/mqtt_client.py</code>: implementa el cliente MQTT del robot.</li>
+</ul>
+<h3>4.2 Modulos de la aplicacion web</h3>
+<ul>
+<li><code>webapp/index.html</code>: estructura de la interfaz.</li>
+<li><code>webapp/styles.css</code>: estilos visuales.</li>
+<li><code>webapp/app.js</code>: conexion MQTT, pedidos, estado y odometria.</li>
+<li><code>webapp/map_renderer.js</code>: renderizado del mapa en canvas.</li>
+<li><code>webapp/images/</code>: imagenes de los bloques del mapa.</li>
+</ul>
+<h3>4.3 Topics MQTT</h3>
+<table>
+<thead><tr><th>Topic</th><th>Direccion</th><th>Uso</th></tr></thead><tbody>
+<tr><td><code>map</code></td><td>Web/broker -&gt; robot</td><td>Envio del mapa codificado</td></tr>
+<tr><td><code>Equipo F/pedidos</code></td><td>Web -&gt; robot</td><td>Pedidos con recogida y entrega</td></tr>
+<tr><td><code>Equipo F/posicion_inicial</code></td><td>Web -&gt; robot</td><td>Configuracion de posicion inicial</td></tr>
+<tr><td><code>Equipo F/odometria</code></td><td>Robot -&gt; web</td><td>Posicion, orientacion y movimiento</td></tr>
+<tr><td><code>Equipo F/estado</code></td><td>Robot -&gt; web</td><td>Estado actual del pedido</td></tr>
+</tbody></table>
+<h2>5. Planificacion</h2>
+<p>El trabajo se organizo por fases:</p>
+<table>
+<thead><tr><th>Fase</th><th>Trabajo realizado</th><th>Resultado</th></tr></thead><tbody>
+<tr><td>1</td><td>Analisis del enunciado y mapa</td><td>Identificacion de bloques, calles y puntos de pedido</td></tr>
+<tr><td>2</td><td>Construccion del robot</td><td>Chasis con dos motores, pala y sensor de color</td></tr>
+<tr><td>3</td><td>Comunicacion MQTT</td><td>Envio de mapa, pedidos, estado y odometria</td></tr>
+<tr><td>4</td><td>Aplicacion web</td><td>Interfaz para mapa, pedidos y seguimiento</td></tr>
+<tr><td>5</td><td>Planificacion de rutas</td><td>Parser de mapa y BFS sobre grafo</td></tr>
+<tr><td>6</td><td>Navegacion fisica</td><td>Seguimiento de linea verde y deteccion de cuadrados negros</td></tr>
+<tr><td>7</td><td>Calibracion</td><td>Ajuste de giros, umbrales de color y salida de intersecciones</td></tr>
+<tr><td>8</td><td>Pruebas finales</td><td>Validacion de entregas completas sobre el tablero</td></tr>
+</tbody></table>
+<p>La fase mas iterativa fue la calibracion. Aunque el algoritmo de ruta funcionaba de forma logica, el comportamiento real del robot exigio ajustar parametros de giro, avance y busqueda de linea.</p>
+<h2>6. Diseno</h2>
+<h3>6.1 Representacion del mapa</h3>
+<p>El mapa se recibe como una cadena de caracteres donde cada par de digitos representa un bloque. El mapa tiene 7 filas y 5 columnas. Cada ID indica que tipo de bloque es y que direcciones permite.</p>
+<p>Ejemplos:</p>
+<table>
+<thead><tr><th>ID</th><th>Tipo</th></tr></thead><tbody>
+<tr><td><code>00</code></td><td>Edificio</td></tr>
+<tr><td><code>01</code></td><td>Calle izquierda-derecha</td></tr>
+<tr><td><code>02</code></td><td>Calle arriba-abajo</td></tr>
+<tr><td><code>03</code></td><td>Curva arriba-derecha</td></tr>
+<tr><td><code>11</code></td><td>Cruce con las cuatro direcciones</td></tr>
+</tbody></table>
+<p>El modulo <code>map_parser.py</code> convierte estos IDs en una matriz y despues construye un grafo de adyacencia. Solo se conecta una casilla con otra si ambas tienen direcciones compatibles.</p>
+<h3>6.2 Calculo de rutas</h3>
+<p>Para calcular la ruta entre dos puntos se utiliza busqueda en anchura (BFS). Esta tecnica es adecuada porque todas las conexiones entre casillas tienen el mismo coste, por lo que BFS encuentra la ruta con menor numero de pasos.</p>
+<p>Flujo del calculo de ruta:</p>
+<pre><code>
+Inicio
+  |
+  v
+Leer posicion actual y destino
+  |
+  v
+Ejecutar BFS sobre el grafo del mapa
+  |
+  v
+Hay ruta?
+  |--- No ---&gt; Mostrar error
+  |
+  Si
+  |
+  v
+Convertir posiciones a direcciones
+  |
+  v
+Ejecutar movimiento bloque a bloque
+</code></pre>
+<h3>6.3 Navegacion bloque a bloque</h3>
+<p>Cada tramo de la ruta se ejecuta en dos pasos:</p>
+<ol>
+<li>Girar hasta la direccion necesaria.</li>
+<li>Avanzar hasta el siguiente bloque siguiendo la linea verde.</li>
+</ol>
+<p>El robot mantiene una orientacion logica (<code>up</code>, <code>right</code>, <code>down</code>, <code>left</code>) y la convierte a angulos absolutos: 0, 90, 180 y 270 grados.</p>
+<h3>6.4 Seguimiento de linea verde</h3>
+<p>El sensor de color lee valores RGB. Para detectar la linea verde se calcula:</p>
+<pre><code>
+verdosidad = G - max(R, B)
+</code></pre>
+<p>Si la verdosidad supera el umbral configurado, se considera que el robot esta sobre la linea verde. El seguimiento usa un controlador proporcional-derivativo:</p>
+<pre><code>
+error = LINE_THRESHOLD - verdosidad
+giro = Kp * error + Kd * (error - error_anterior)
+</code></pre>
+<p>Esto permite que el robot corrija su trayectoria mientras avanza.</p>
+<h3>6.5 Deteccion de cuadrados negros</h3>
+<p>Los cuadrados negros indican centros de casilla e intersecciones. El robot los detecta combinando dos condiciones:</p>
+<pre><code>
+intensidad = R + G + B
+es_negro = intensidad &lt; BLACK_INTENSITY_THRESHOLD
+           y verdosidad &lt; LINE_THRESHOLD
+</code></pre>
+<p>La segunda condicion evita confundir una linea verde oscura con negro.</p>
+<h3>6.6 Maquina de estados del avance</h3>
+<p>El seguimiento de linea utiliza una maquina de estados para distinguir entre salir del centro actual, cruzar la frontera y llegar al centro siguiente.</p>
+<pre><code>
+Fase 0: salir del cuadrado negro actual
+  |
+  v
+Fase 1: seguir linea verde hasta detectar frontera negra
+  |
+  v
+Fase 2: cruzar frontera negra hasta volver a verde
+  |
+  v
+Fase 3: buscar el cuadrado negro central del siguiente bloque
+  |
+  v
+Parar y centrar ruedas
+</code></pre>
+<h3>6.7 Tratamiento especial de giros</h3>
+<p>El robot real no gira exactamente lo mismo que el valor pedido por software. Por ello se han calibrado factores de correccion:</p>
+<table>
+<thead><tr><th>Parametro</th><th>Valor actual</th><th>Funcion</th></tr></thead><tbody>
+<tr><td><code>TURN_90_CORRECTION</code></td><td><code>1.60</code></td><td>Compensa giros de 90 grados</td></tr>
+<tr><td><code>TURN_180_CORRECTION</code></td><td><code>1.25</code></td><td>Compensa giros de 180 grados</td></tr>
+<tr><td><code>RIGHT_TURN_REDUCTION</code></td><td><code>0.60</code></td><td>Reduce giros a derecha para no pasarse</td></tr>
+<tr><td><code>RIGHT_TURN_LINE_SEARCH_DISTANCE</code></td><td><code>90 mm</code></td><td>Avance corto tras girar a la derecha</td></tr>
+</tbody></table>
+<p>Tambien se decidio que los giros de 180 grados se hagan siempre hacia la izquierda, porque en las pruebas resultaban mas fiables que los giros de 180 hacia la derecha.</p>
+<p>La posicion real del sensor condiciona esta parte: el sensor esta situado delante y a la izquierda del centro del robot. Por este motivo, tras ciertos giros a la derecha el sensor podia quedar sobre el negro o detectar una linea incorrecta. La solucion final fue reducir el giro derecho y avanzar un poco buscando verde antes de activar la busqueda en abanico.</p>
+<h3>6.8 Busqueda de linea</h3>
+<p>Si el robot sale del negro y no encuentra la linea verde, realiza una busqueda en abanico. Esta busqueda gira sobre el sitio, sin avanzar, para evitar que el robot invada lineas cercanas y detecte una calle incorrecta.</p>
+<pre><code>
+No hay verde
+  |
+  v
+Girar a derecha buscando verde
+  |
+  v
+Girar a izquierda cruzando el centro
+  |
+  v
+Volver al centro
+  |
+  v
+Repetir con abanico algo mayor
+</code></pre>
+<h2>7. Implementacion</h2>
+<p>El proyecto esta implementado principalmente en Python/MicroPython para el robot y JavaScript para la interfaz web.</p>
+<h3>7.1 Codigo del robot</h3>
+<p>El archivo <code>main.py</code> realiza la inicializacion general:</p>
+<ul>
+<li>Inicializa motores, sensores y pantalla.</li>
+<li>Conecta con el broker MQTT.</li>
+<li>Espera el mapa.</li>
+<li>Crea el navegador.</li>
+<li>Entra en un bucle de espera de pedidos.</li>
+<li>Ejecuta la ruta de recogida y despues la ruta de entrega.</li>
+</ul>
+<p>El archivo <code>hardware.py</code> encapsula el acceso fisico al EV3:</p>
+<ul>
+<li>Motores izquierdo y derecho.</li>
+<li>Motor de pala.</li>
+<li>Sensor de color.</li>
+<li>Sensor giroscopico.</li>
+<li>DriveBase para movimiento diferencial.</li>
+<li>Pantalla, luz y sonido.</li>
+</ul>
+<p>El archivo <code>navigation.py</code> contiene la parte principal de autonomia:</p>
+<ul>
+<li>Busqueda de rutas con BFS.</li>
+<li>Conversion de rutas a direcciones.</li>
+<li>Gestion de orientacion.</li>
+<li>Giro calibrado.</li>
+<li>Seguimiento de linea.</li>
+<li>Busqueda de linea en abanico.</li>
+<li>Recogida y entrega de paquete.</li>
+</ul>
+<h3>7.2 Codigo de la interfaz web</h3>
+<p>La aplicacion web permite:</p>
+<ul>
+<li>Conectarse al broker MQTT mediante WebSockets.</li>
+<li>Recibir y representar el mapa.</li>
+<li>Configurar la posicion inicial.</li>
+<li>Crear pedidos de recogida y entrega.</li>
+<li>Mostrar la cola de pedidos.</li>
+<li>Visualizar odometria y estado del robot.</li>
+</ul>
+<p>El mapa se dibuja en un elemento <code>canvas</code>. Las imagenes de bloques permiten que la representacion sea mas parecida al tablero real.</p>
+<h3>7.3 Comunicacion MQTT</h3>
+<p>La comunicacion se basa en mensajes JSON simples. Un pedido tiene esta estructura:</p>
+<pre><code>
+{
+  &quot;pickup&quot;: [2, 1],
+  &quot;delivery&quot;: [5, 0]
+}
+</code></pre>
+<p>Un mensaje de odometria incluye informacion como:</p>
+<pre><code>
+{
+  &quot;row&quot;: 4,
+  &quot;col&quot;: 0,
+  &quot;heading&quot;: &quot;up&quot;,
+  &quot;heading_angle&quot;: 0,
+  &quot;distance&quot;: 125,
+  &quot;speed&quot;: 80,
+  &quot;angle&quot;: 0,
+  &quot;turn_rate&quot;: 5
+}
+</code></pre>
+<h2>8. Despliegue</h2>
+<h3>8.1 Requisitos de software</h3>
+<ul>
+<li>Visual Studio Code.</li>
+<li>Extension LEGO MINDSTORMS EV3 MicroPython.</li>
+<li>Extension ev3dev-browser.</li>
+<li>Mosquitto MQTT Broker.</li>
+<li>Navegador web moderno.</li>
+<li>Python en el ordenador para ejecutar <code>set_ip.py</code>.</li>
+</ul>
+<h3>8.2 Configuracion de red</h3>
+<p>El ordenador y el robot deben estar conectados a la misma red Wi-Fi. La IP del ordenador se configura en los archivos del robot y de la web mediante:</p>
+<pre><code>
+python set_ip.py &lt;IP_DEL_ORDENADOR&gt;
+</code></pre>
+<p>Este script actualiza:</p>
+<ul>
+<li><code>webapp/app.js</code></li>
+<li><code>robot/mqtt_client.py</code></li>
+</ul>
+<h3>8.3 Arranque del broker MQTT</h3>
+<p>Desde la raiz del proyecto:</p>
+<pre><code>
+&amp; &quot;C:\Program Files\mosquitto\mosquitto.exe&quot; -v -c mosquitto.conf
+</code></pre>
+<p>La terminal debe permanecer abierta mientras se prueba el sistema.</p>
+<h3>8.4 Ejecucion del robot</h3>
+<ol>
+<li>Conectar el EV3 al ordenador mediante USB o Wi-Fi.</li>
+<li>Abrir el proyecto en Visual Studio Code.</li>
+<li>Subir la carpeta <code>robot/</code> al EV3.</li>
+<li>Ejecutar <code>main.py</code> desde el entorno EV3.</li>
+<li>Esperar a que el robot muestre que esta listo o esperando mapa.</li>
+</ol>
+<h3>8.5 Ejecucion de la web</h3>
+<ol>
+<li>Abrir <code>webapp/index.html</code> en el navegador.</li>
+<li>Comprobar que aparece conexion al broker.</li>
+<li>Esperar o reenviar el mapa.</li>
+<li>Seleccionar punto de recogida y entrega.</li>
+<li>Enviar el pedido.</li>
+</ol>
+<h2>9. Resultados</h2>
+<p>El sistema final consigue completar rutas de recogida y entrega usando el mapa, la planificacion BFS y el seguimiento de linea verde.</p>
+<h3>9.1 Parametros finales de navegacion</h3>
+<table>
+<thead><tr><th>Parametro</th><th>Valor</th><th>Observacion</th></tr></thead><tbody>
+<tr><td><code>LINE_THRESHOLD</code></td><td><code>20</code></td><td>Umbral de verdosidad</td></tr>
+<tr><td><code>BLACK_INTENSITY_THRESHOLD</code></td><td><code>45</code></td><td>Umbral de negro</td></tr>
+<tr><td><code>LINE_SPEED</code></td><td><code>80 mm/s</code></td><td>Velocidad de seguimiento</td></tr>
+<tr><td><code>PROPORTIONAL_GAIN</code></td><td><code>3.5</code></td><td>Ganancia proporcional</td></tr>
+<tr><td><code>DERIVATIVE_GAIN</code></td><td><code>2.0</code></td><td>Ganancia derivativa</td></tr>
+<tr><td><code>TURN_90_CORRECTION</code></td><td><code>1.60</code></td><td>Correccion de giro de 90</td></tr>
+<tr><td><code>TURN_180_CORRECTION</code></td><td><code>1.25</code></td><td>Correccion de giro de 180</td></tr>
+<tr><td><code>RIGHT_TURN_REDUCTION</code></td><td><code>0.60</code></td><td>Ajuste especifico de giro derecho</td></tr>
+<tr><td><code>RIGHT_TURN_LINE_SEARCH_DISTANCE</code></td><td><code>90 mm</code></td><td>Avance tras giro derecho</td></tr>
+</tbody></table>
+<h3>9.2 Pruebas realizadas</h3>
+<table>
+<thead><tr><th>Prueba</th><th>Resultado</th><th>Comentario</th></tr></thead><tbody>
+<tr><td>Recepcion de mapa por MQTT</td><td>Correcta</td><td>El robot recibe la cadena y la parsea</td></tr>
+<tr><td>Envio de pedido desde web</td><td>Correcto</td><td>El pedido llega al topic del equipo</td></tr>
+<tr><td>Calculo de ruta</td><td>Correcto</td><td>BFS encuentra rutas validas</td></tr>
+<tr><td>Seguimiento de linea verde</td><td>Correcto tras calibracion</td><td>Requiere umbrales ajustados</td></tr>
+<tr><td>Deteccion de cuadrados negros</td><td>Correcta</td><td>Se evita confundir verde oscuro con negro</td></tr>
+<tr><td>Giro a derecha</td><td>Correcto tras ajuste</td><td>Se redujo el giro y se anadio busqueda corta de linea</td></tr>
+<tr><td>Giro de 180 grados</td><td>Correcto</td><td>Se fuerza hacia la izquierda</td></tr>
+<tr><td>Publicacion de odometria</td><td>Correcta</td><td>La web actualiza posicion y estado</td></tr>
+</tbody></table>
+<h3>9.3 Imagenes y videos</h3>
+<p>Incluir aqui evidencias de funcionamiento:</p>
+<ul>
+<li>Imagen del robot montado: <code>imagenes/robot.jpg</code></li>
+<li>Imagen del tablero o ciudad: <code>ciudad.png</code></li>
+<li>Captura de la aplicacion web funcionando: <code>imagenes/webapp.png</code></li>
+<li>Video de recogida y entrega: enlace pendiente</li>
+<li>Video de seguimiento de linea y giro en intersecciones: enlace pendiente</li>
+</ul>
+<h2>10. Mejoras futuras</h2>
+<ul>
+<li>Anadir una segunda lectura de color o un segundo sensor para detectar mejor la posicion lateral de la linea.</li>
+<li>Usar el giroscopio de forma mas intensiva para cerrar el control de giro.</li>
+<li>Guardar estadisticas automaticas de cada pedido: tiempo total, distancia recorrida, numero de realineaciones y errores.</li>
+<li>Mejorar la interfaz para mostrar la ruta planificada antes de ejecutarla.</li>
+<li>Implementar replanificacion si el robot falla al llegar a un bloque.</li>
+<li>Crear un modo de calibracion guiado desde la web para ajustar umbrales sin modificar codigo.</li>
+<li>Reducir la dependencia de parametros empiricos mediante control mas robusto.</li>
+<li>Anadir confirmacion visual de recogida y entrega mediante sensores o deteccion de carga.</li>
+</ul>
+<h2>11. Referencias</h2>
+<ul>
+<li>Documentacion de Pybricks para EV3: https://docs.pybricks.com/</li>
+<li>Documentacion de LEGO Mindstorms EV3.</li>
+<li>Documentacion de MQTT: https://mqtt.org/</li>
+<li>Eclipse Mosquitto: https://mosquitto.org/</li>
+<li>Material de la asignatura Inteligencia Ambiental.</li>
+<li>Codigo fuente del proyecto del Grupo F.</li>
+</ul>
+</body>
+</html>

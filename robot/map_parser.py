@@ -76,14 +76,6 @@ class CityMap:
         self.start_position = (MAP_ROWS - 1, 0)  # Esquina inferior izquierda (fila 6, col 0 en grid 7x5)
 
     def parse(self, map_string):
-        """
-        Parsea la cadena del mapa y construye el grid y el grafo de adyacencia.
-
-        Args:
-            map_string: Cadena de caracteres con los IDs de bloque concatenados.
-                        Ejemplo: "02020001050307..."
-        """
-        # Extraer pares de dígitos
         block_ids = []
         for i in range(0, len(map_string), 2):
             block_id = int(map_string[i:i+2])
@@ -108,7 +100,6 @@ class CityMap:
         self._find_pickup_points()
 
     def _build_adjacency(self):
-        """Construye el grafo de adyacencia basado en las conexiones de los bloques."""
         self.adjacency = {}
 
         for row in range(MAP_ROWS):
@@ -132,7 +123,6 @@ class CityMap:
                 self.adjacency[(row, col)] = neighbors
 
     def _find_pickup_points(self):
-        """Identifica los puntos de recogida/entrega (bloques con solo 1 conexión válida)."""
         self.pickup_points = []
 
         for row in range(MAP_ROWS):
@@ -147,28 +137,23 @@ class CityMap:
                     self.pickup_points.append((row, col))
 
     def is_building(self, row, col):
-        """Comprueba si un bloque es un edificio."""
         if 0 <= row < MAP_ROWS and 0 <= col < MAP_COLS:
             return self.grid[row][col] == 0
         return True  # Fuera de límites se considera edificio
 
     def is_street(self, row, col):
-        """Comprueba si un bloque es una calle."""
         return not self.is_building(row, col)
 
     def get_block_directions(self, row, col):
-        """Devuelve las direcciones de entrada/salida de un bloque."""
         if 0 <= row < MAP_ROWS and 0 <= col < MAP_COLS:
             block_id = self.grid[row][col]
             return BLOCK_DIRECTIONS.get(block_id, [])
         return []
 
     def get_neighbors(self, row, col):
-        """Devuelve los vecinos accesibles de un bloque."""
         return self.adjacency.get((row, col), [])
 
     def get_direction_to(self, from_pos, to_pos):
-        """Calcula la dirección necesaria para ir de from_pos a to_pos (adyacentes)."""
         dr = to_pos[0] - from_pos[0]
         dc = to_pos[1] - from_pos[1]
 
@@ -178,7 +163,6 @@ class CityMap:
         return None
 
     def to_json(self):
-        """Serializa el mapa a un diccionario JSON-compatible."""
         return {
             'grid': self.grid,
             'rows': MAP_ROWS,
@@ -188,7 +172,6 @@ class CityMap:
         }
 
     def print_map(self):
-        """Imprime una representación visual del mapa en consola."""
         for row in range(MAP_ROWS):
             line = ""
             for col in range(MAP_COLS):
