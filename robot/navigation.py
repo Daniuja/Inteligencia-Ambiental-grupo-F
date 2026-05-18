@@ -101,7 +101,7 @@ class Navigator:
     # Compensacion de giro real del robot.
     # En pruebas: 90 ordenados ~= 60 reales, 180 ordenados ~= 150 reales.
     TURN_90_CORRECTION = 1.60
-    TURN_180_CORRECTION = 1.25
+    TURN_180_CORRECTION = 1.35
     RIGHT_TURN_REDUCTION = 0.60
     RIGHT_TURN_LINE_SEARCH_SPEED = 50
     RIGHT_TURN_LINE_SEARCH_DISTANCE = 90
