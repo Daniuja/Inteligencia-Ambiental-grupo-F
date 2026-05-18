@@ -24,7 +24,7 @@ import utime
 
 MQTT_BROKER = "192.168.0.108"
 MQTT_PORT = 1883
-TEAM_LETTER = "F"  # Letra del equipo en Platea
+TEAM_LETTER = "F"  
 
 # Topics
 TOPIC_MAP = "map"
